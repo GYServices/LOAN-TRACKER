@@ -1,0 +1,1348 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#1B365D">
+  <title>G &amp; Y Services Loan Tracker</title>
+  <style>
+    :root {
+      --navy: #1B365D;
+      --green: #00B050;
+      --bg: #f3f6fa;
+      --surface: #fff;
+      --text: #1d2939;
+      --muted: #667085;
+      --line: #e4eaf1;
+      --radius: 16px;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: Inter, system-ui, -apple-system, sans-serif;
+    }
+    button, input, select, textarea { font: inherit; }
+    button { cursor: pointer; }
+    .hidden { display: none !important; }
+    .auth-screen {
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      padding: 24px;
+      background: var(--bg);
+    }
+    .auth-card {
+      width: min(100%, 430px);
+      background: white;
+      border: 1px solid var(--line);
+      border-radius: 22px;
+      box-shadow: 0 8px 26px #1b365d12;
+      padding: 34px;
+    }
+    .brand-mark, .mini-mark, .about-logo {
+      display: grid;
+      place-items: center;
+      color: white;
+      background: var(--navy);
+      font-weight: 800;
+    }
+    .brand-mark {
+      width: 52px;
+      height: 52px;
+      border-radius: 15px;
+    }
+    .auth-card h1 { color: var(--navy); font-size: 23px; }
+    .sub, .muted { color: var(--muted); }
+    .sub { font-size: 14px; line-height: 1.5; }
+    .stack { display: grid; gap: 15px; }
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: 7px;
+      min-width: 0;
+    }
+    label {
+      font-size: 12px;
+      color: #475467;
+      font-weight: 700;
+    }
+    input, select, textarea {
+      width: 100%;
+      border: 1px solid #d7dee8;
+      background: white;
+      border-radius: 10px;
+      padding: 11px 12px;
+      outline: none;
+    }
+    input:focus, select:focus, textarea:focus {
+      border-color: #6a8bb8;
+      box-shadow: 0 0 0 3px #1b365d19;
+    }
+    textarea { resize: vertical; min-height: 76px; }
+    .btn {
+      border: 0;
+      border-radius: 10px;
+      padding: 11px 16px;
+      font-weight: 700;
+      display: inline-flex;
+      justify-content: center;
+      align-items: center;
+      gap: 8px;
+    }
+    .primary { background: var(--navy); color: white; }
+    .success { background: var(--green); color: white; }
+    .secondary { background: #edf2f8; color: var(--navy); }
+    .danger { background: #fff0f0; color: #b42318; }
+    .small { padding: 7px 10px; font-size: 12px; }
+    .text-btn {
+      background: none;
+      color: var(--navy);
+      border: 0;
+      padding: 8px;
+      font-weight: 700;
+    }
+    .auth-switch {
+      text-align: center;
+      margin-top: 15px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      background: var(--navy);
+      color: white;
+      padding: 13px 22px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      box-shadow: 0 3px 15px #0d233f30;
+    }
+    .top-brand { display: flex; align-items: center; gap: 12px; }
+    .mini-mark {
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      background: #ffffff24;
+    }
+    .top-brand strong { display: block; font-size: 14px; }
+    .top-brand span { display: block; color: #c9d5e5; font-size: 11px; }
+    .top-right { display: flex; align-items: center; gap: 12px; }
+    .user-email {
+      font-size: 12px;
+      color: #d9e3f0;
+      max-width: 230px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .logout {
+      background: #ffffff20;
+      color: white;
+      border: 1px solid #ffffff30;
+      border-radius: 9px;
+      padding: 8px 11px;
+      font-size: 12px;
+      font-weight: 700;
+    }
+    .main {
+      max-width: 1240px;
+      margin: auto;
+      padding: 28px 22px 105px;
+    }
+    .page-heading {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 15px;
+      margin-bottom: 22px;
+    }
+    .page-heading h2 {
+      margin: 0;
+      color: var(--navy);
+      font-size: 25px;
+    }
+    .page-heading p { color: var(--muted); font-size: 13px; }
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0,1fr));
+      gap: 14px;
+    }
+    .stat-card, .panel, .loan-card, .payment-card {
+      background: white;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: 0 3px 12px #1b365d08;
+    }
+    .stat-card { padding: 18px; min-height: 112px; }
+    .stat-label { color: var(--muted); font-size: 12px; font-weight: 650; }
+    .stat-value {
+      color: var(--navy);
+      font-size: 22px;
+      font-weight: 800;
+      margin-top: 12px;
+      overflow-wrap: anywhere;
+    }
+    .stat-value.money { font-size: 19px; }
+    .dashboard-lower {
+      display: grid;
+      grid-template-columns: 1.2fr .8fr;
+      gap: 16px;
+      margin-top: 17px;
+    }
+    .panel { padding: 20px; }
+    .panel h3 { color: var(--navy); margin: 0 0 16px; font-size: 15px; }
+    .breakdown { display: grid; gap: 13px; }
+    .break-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 13px;
+    }
+    .break-left { display: flex; align-items: center; gap: 9px; }
+    .dot { width: 9px; height: 9px; border-radius: 50%; }
+    .break-count { font-weight: 800; color: var(--navy); }
+    .list-toolbar { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; }
+    .search { max-width: 320px; }
+    .loan-grid, .payment-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0,1fr));
+      gap: 15px;
+    }
+    .loan-card, .payment-card { padding: 18px; min-width: 0; }
+    .card-top { display: flex; justify-content: space-between; gap: 12px; }
+    .loan-id { font-size: 11px; color: var(--muted); font-weight: 800; }
+    .borrower { font-size: 17px; font-weight: 800; color: var(--navy); margin: 4px 0; }
+    .badge {
+      display: inline-flex;
+      border-radius: 999px;
+      padding: 5px 9px;
+      font-size: 10px;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+    .status-active { color: #087443; background: #dff7eb; }
+    .status-paid { color: #175cd3; background: #e5efff; }
+    .status-overdue { color: #9a6700; background: #fff2cc; }
+    .status-defaulted { color: #b42318; background: #fee4e2; }
+    .status-long { color: white; background: #7a271a; }
+    .loan-metrics {
+      display: grid;
+      grid-template-columns: repeat(2,1fr);
+      gap: 11px;
+      margin: 17px 0;
+      padding: 13px 0;
+      border-top: 1px solid var(--line);
+      border-bottom: 1px solid var(--line);
+    }
+    .metric-label { color: var(--muted); font-size: 10px; margin-bottom: 4px; }
+    .metric-value { font-size: 13px; font-weight: 750; overflow-wrap: anywhere; }
+    .card-meta { color: var(--muted); font-size: 11px; line-height: 1.8; }
+    .card-actions { display: flex; justify-content: flex-end; gap: 7px; margin-top: 13px; }
+    .empty {
+      grid-column: 1/-1;
+      text-align: center;
+      padding: 48px 20px;
+      border: 1px dashed #cbd5e1;
+      border-radius: var(--radius);
+      color: var(--muted);
+    }
+    .empty strong { display: block; color: var(--navy); margin-bottom: 6px; }
+    .payment-card h4 { margin: 6px 0; color: var(--navy); font-size: 15px; }
+    .payment-amount { font-size: 20px; color: var(--green); font-weight: 850; margin: 12px 0 5px; }
+    .about-card { max-width: 760px; line-height: 1.7; }
+    .about-logo {
+      width: 64px;
+      height: 64px;
+      border-radius: 18px;
+      font-size: 20px;
+    }
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      z-index: 50;
+      display: grid;
+      place-items: center;
+      background: #09182b90;
+      padding: 16px;
+    }
+    .modal {
+      width: min(100%, 850px);
+      max-height: 92vh;
+      overflow: auto;
+      background: white;
+      border-radius: 18px;
+    }
+    .modal.narrow { max-width: 560px; }
+    .modal-head, .modal-foot { padding: 19px 22px; border-bottom: 1px solid var(--line); }
+    .modal-head { display: flex; justify-content: space-between; align-items: center; }
+    .modal-head h3 { color: var(--navy); margin: 0; }
+    .close { border: 0; background: #f1f4f8; border-radius: 9px; width: 33px; height: 33px; font-size: 21px; }
+    .modal-body { padding: 22px; }
+    .form-section { margin-bottom: 23px; }
+    .form-section h4 { color: var(--navy); font-size: 13px; text-transform: uppercase; }
+    .form-grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 13px; }
+    .preview-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 9px; }
+    .preview-item { background: #eff7f2; border-radius: 10px; padding: 12px; }
+    .preview-item span { display: block; color: #547261; font-size: 10px; }
+    .preview-item strong { display: block; color: #087443; margin-top: 5px; font-size: 14px; }
+    .modal-foot { display: flex; justify-content: flex-end; gap: 9px; border-top: 1px solid var(--line); border-bottom: 0; }
+    .toast-wrap {
+      position: fixed;
+      z-index: 100;
+      right: 18px;
+      top: 18px;
+      display: grid;
+      gap: 8px;
+      width: min(360px, calc(100vw - 36px));
+    }
+    .toast { background: #102a48; color: white; border-radius: 11px; padding: 13px 15px; font-size: 13px; }
+    .toast.error { background: #a62922; }
+    .toast.success-toast { background: #087443; }
+    .spinner, .loader {
+      border-radius: 50%;
+      animation: spin .8s linear infinite;
+    }
+    .spinner {
+      width: 14px;
+      height: 14px;
+      border: 2px solid #ffffff60;
+      border-top-color: white;
+    }
+    .loader {
+      width: 30px;
+      height: 30px;
+      border: 3px solid #d8e2ed;
+      border-top-color: var(--green);
+      margin: 0 auto 12px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .bottom-nav { display: none; }
+    .loading-cover {
+      position: fixed;
+      inset: 0;
+      z-index: 80;
+      display: grid;
+      place-items: center;
+      background: #f3f6facc;
+      color: var(--navy);
+      font-weight: 700;
+    }
+    @media(max-width:900px) {
+      .stats-grid { grid-template-columns: repeat(2,minmax(0,1fr)); }
+      .dashboard-lower { grid-template-columns: 1fr; }
+    }
+    @media(max-width:640px) {
+      .topbar { padding: 11px 14px; }
+      .user-email { display: none; }
+      .main { padding: 22px 14px 100px; }
+      .stats-grid { gap: 9px; }
+      .stat-card { padding: 13px; min-height: 94px; }
+      .stat-value { font-size: 19px; }
+      .stat-value.money { font-size: 15px; }
+      .loan-grid, .payment-grid { grid-template-columns: 1fr; }
+      .list-toolbar { flex-direction: column; align-items: stretch; }
+      .search { max-width: none; }
+      .bottom-nav {
+        position: fixed;
+        z-index: 25;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        display: grid;
+        grid-template-columns: repeat(4,1fr);
+        padding: 8px 8px calc(8px + env(safe-area-inset-bottom));
+        background: white;
+        border-top: 1px solid var(--line);
+      }
+      .nav-item {
+        border: 0;
+        background: transparent;
+        color: #758196;
+        display: grid;
+        justify-items: center;
+        gap: 4px;
+        padding: 5px 2px;
+        font-size: 10px;
+        font-weight: 700;
+      }
+      .nav-icon { font-size: 19px; }
+      .nav-item.active { color: var(--navy); }
+      .form-grid, .preview-grid { grid-template-columns: 1fr; }
+      .modal-backdrop { padding: 0; align-items: end; }
+      .modal { width: 100%; max-height: 94vh; border-radius: 18px 18px 0 0; }
+      .modal-body { padding: 18px 16px; }
+    }
+  </style>
+</head>
+<body>
+
+<section id="authScreen" class="auth-screen">
+  <div class="auth-card">
+    <div class="brand-mark">G&amp;Y</div>
+    <h1>G &amp; Y Services</h1>
+    <p class="sub">G &amp; Y Services Loan Tracker<br>Secure loan and repayment management.</p>
+    <form id="authForm" class="stack">
+      <div class="field">
+        <label for="authPassword">ADMIN PASSWORD</label>
+        <input id="authPassword" type="password" minlength="6" required autocomplete="current-password" placeholder="Enter administrator password">
+      </div>
+      <button id="authSubmit" class="btn primary" type="submit">Unlock Dashboard</button>
+    </form>
+    <p class="auth-switch">Administrator access only. Registration is disabled.</p>
+  </div>
+</section>
+
+<div id="appShell" class="hidden">
+  <header class="topbar">
+    <div class="top-brand">
+      <div class="mini-mark">G&amp;Y</div>
+      <div>
+        <strong>G &amp; Y Services</strong>
+        <span id="pageSubTitle">Loan Tracker · Dashboard</span>
+      </div>
+    </div>
+    <div class="top-right">
+      <span id="userEmail" class="user-email"></span>
+      <button id="logoutBtn" class="logout" type="button">Log out ↗</button>
+    </div>
+  </header>
+
+  <main id="mainContent" class="main"></main>
+
+  <nav class="bottom-nav">
+    <button class="nav-item active" data-page="dashboard"><span class="nav-icon">▦</span>Dashboard</button>
+    <button class="nav-item" data-page="loans"><span class="nav-icon">▤</span>Loans</button>
+    <button class="nav-item" data-page="payments"><span class="nav-icon">₦</span>Payments</button>
+    <button class="nav-item" data-page="about"><span class="nav-icon">ⓘ</span>About</button>
+  </nav>
+</div>
+
+<div id="modalRoot"></div>
+<div id="toastWrap" class="toast-wrap"></div>
+<div id="loadingCover" class="loading-cover hidden">
+  <div style="text-align:center"><div class="loader"></div>Loading your workspace…</div>
+</div>
+
+<script type="module">
+  const firebaseConfig = {
+    apiKey: "AIzaSyBJAcMa_No2uPAVX6WAfoloJLW9NL00CFU",
+    authDomain: "loan-tracker-ae810.firebaseapp.com",
+    projectId: "loan-tracker-ae810",
+    storageBucket: "loan-tracker-ae810.firebasestorage.app",
+    messagingSenderId: "370042396796",
+    appId: "1:370042396796:web:a40fbba9343e0fcd45e9f9",
+    measurementId: "G-J42CTFGC28"
+  };
+
+  // The administrator email is fixed here. Never put your password in this file.
+  const ADMIN_EMAIL = "gyservices55@gmail.com";
+  const ADMIN_UID = "4MlYoMQN3JT77zBl42lyYhxI5Mg1";
+
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
+  import {
+    getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut
+  } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
+
+  import {
+    getFirestore, collection, doc, addDoc, updateDoc, deleteDoc,
+    onSnapshot, query, orderBy, runTransaction, serverTimestamp
+  } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
+
+  const $ = id => document.getElementById(id);
+
+  const money = value => "₦" + Number(value || 0).toLocaleString("en-NG", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  });
+
+  const number = value => Number(value || 0);
+
+  const esc = value => String(value ?? "").replace(/[&<>"']/g, c => ({
+    "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;"
+  })[c]);
+
+  const dateText = value => value
+    ? new Date(value + (String(value).length === 10 ? "T00:00:00" : "")).toLocaleDateString("en-NG")
+    : "—";
+
+  const statuses = ["Active","Fully Paid","Overdue","Defaulted","Long Overdue"];
+
+  const statusClass = status => ({
+    "Active":"status-active",
+    "Fully Paid":"status-paid",
+    "Overdue":"status-overdue",
+    "Defaulted":"status-defaulted",
+    "Long Overdue":"status-long"
+  }[status] || "status-active");
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+
+  let currentUser = null;
+  let currentPage = "dashboard";
+  let loans = [];
+  let payments = [];
+  let unsubLoans = null;
+  let unsubPayments = null;
+
+  const userCollection = name =>
+    collection(db, "users", currentUser.uid, name);
+
+  const userDoc = (name, id) =>
+    doc(db, "users", currentUser.uid, name, id);
+
+  function showToast(message, type = "success-toast") {
+    const el = document.createElement("div");
+    el.className = "toast " + type;
+    el.textContent = message;
+    $("toastWrap").appendChild(el);
+    setTimeout(() => el.remove(), 3600);
+  }
+
+  function setBusy(button, busy, label = "Saving…") {
+    if (!button) return;
+    if (busy) {
+      button.dataset.oldText = button.innerHTML;
+      button.disabled = true;
+      button.innerHTML = '<span class="spinner"></span>' + label;
+    } else {
+      button.disabled = false;
+      button.innerHTML = button.dataset.oldText || "Save";
+    }
+  }
+
+  function calcLoan(principal, rate, duration) {
+    const interest = principal * (rate / 100) * duration;
+    const payable = principal + interest;
+    return {
+      interest,
+      payable,
+      monthly: duration > 0 ? payable / duration : 0
+    };
+  }
+
+  function paidFor(loanId) {
+    return payments
+      .filter(p => p.loanId === loanId)
+      .reduce((sum,p) => sum + number(p.amount), 0);
+  }
+
+  function outstandingFor(loan) {
+    return Math.max(0, number(loan.totalPayable) - paidFor(loan.id));
+  }
+
+  function effectiveStatus(loan) {
+    if (paidFor(loan.id) >= number(loan.totalPayable) && number(loan.totalPayable) > 0) {
+      return "Fully Paid";
+    }
+    return loan.status === "Fully Paid"
+      ? (loan.statusBeforePaid || "Active")
+      : (loan.status || "Active");
+  }
+
+  function friendlyError(error) {
+    const messages = {
+      "auth/email-already-in-use":"This email already has an account.",
+      "auth/invalid-credential":"Email or password is incorrect.",
+      "auth/weak-password":"Password must contain at least 6 characters.",
+      "auth/invalid-email":"Please enter a valid email address.",
+      "auth/network-request-failed":"Check your internet connection.",
+      "permission-denied":"Access denied. Check your Firestore security rules."
+    };
+
+    return messages[error?.code] || error?.message || "Something went wrong.";
+  }
+
+  function stopListeners() {
+    if (unsubLoans) unsubLoans();
+    if (unsubPayments) unsubPayments();
+    unsubLoans = null;
+    unsubPayments = null;
+  }
+
+  function startListeners() {
+    stopListeners();
+
+    $("loadingCover").classList.remove("hidden");
+
+    unsubLoans = onSnapshot(
+      query(userCollection("loans"), orderBy("createdAt","desc")),
+      snap => {
+        loans = snap.docs.map(d => ({id:d.id,...d.data()}));
+        render();
+        $("loadingCover").classList.add("hidden");
+      },
+      error => {
+        $("loadingCover").classList.add("hidden");
+        showToast(friendlyError(error),"error");
+      }
+    );
+
+    unsubPayments = onSnapshot(
+      query(userCollection("payments"), orderBy("date","desc")),
+      snap => {
+        payments = snap.docs.map(d => ({id:d.id,...d.data()}));
+        render();
+      },
+      error => showToast(friendlyError(error),"error")
+    );
+  }
+
+  function showAuth() {
+    $("authScreen").classList.remove("hidden");
+    $("appShell").classList.add("hidden");
+  }
+
+  function showApp() {
+    $("authScreen").classList.add("hidden");
+    $("appShell").classList.remove("hidden");
+    $("userEmail").textContent = currentUser.email || "";
+  }
+
+  $("authForm").addEventListener("submit", async event => {
+    event.preventDefault();
+    const button = $("authSubmit");
+    setBusy(button,true,"Please wait…");
+
+    try {
+      const password = $("authPassword").value;
+      const credential = await signInWithEmailAndPassword(auth, ADMIN_EMAIL, password);
+
+      if (credential.user.uid !== ADMIN_UID) {
+        await signOut(auth);
+        throw new Error("This account is not authorised to access G & Y Services Loan Tracker.");
+      }
+
+      $("authPassword").value = "";
+      showToast("Administrator authentication successful.");
+    } catch (error) {
+      showToast(friendlyError(error),"error");
+    } finally {
+      setBusy(button,false);
+    }
+  });
+
+  $("logoutBtn").addEventListener("click", async () => {
+    try {
+      await signOut(auth);
+    } catch(error) {
+      showToast(friendlyError(error),"error");
+    }
+  });
+
+  onAuthStateChanged(auth, async user => {
+    if (user && user.uid !== ADMIN_UID) {
+      currentUser = null;
+      stopListeners();
+      loans = [];
+      payments = [];
+      showAuth();
+
+      try {
+        await signOut(auth);
+      } catch (error) {
+        showToast("Unauthorised account. Please sign in with the administrator password.", "error");
+      }
+      return;
+    }
+
+    currentUser = user;
+
+    if (user) {
+      showApp();
+      startListeners();
+    } else {
+      stopListeners();
+      loans = [];
+      payments = [];
+      showAuth();
+    }
+  });
+
+  document.querySelectorAll(".nav-item").forEach(button => {
+    button.addEventListener("click", () => navigate(button.dataset.page));
+  });
+
+  function navigate(page) {
+    currentPage = page;
+
+    document.querySelectorAll(".nav-item").forEach(button => {
+      button.classList.toggle("active",button.dataset.page === page);
+    });
+
+    $("pageSubTitle").textContent =
+      "Loan Tracker · " + page.charAt(0).toUpperCase() + page.slice(1);
+
+    render();
+  }
+
+  function pageHeader(title,subtitle,action="") {
+    return `<div class="page-heading">
+      <div><h2>${title}</h2><p>${subtitle}</p></div>${action}
+    </div>`;
+  }
+
+  function stat(label,value,isMoney=false) {
+    return `<div class="stat-card">
+      <div class="stat-label">${label}</div>
+      <div class="stat-value ${isMoney?"money":""}">${value}</div>
+    </div>`;
+  }
+
+  function renderDashboard() {
+    const principal = loans.reduce((s,l)=>s+number(l.principal),0);
+    const interest = loans.reduce((s,l)=>s+number(l.totalInterest),0);
+    const payable = loans.reduce((s,l)=>s+number(l.totalPayable),0);
+    const paid = payments.reduce((s,p)=>s+number(p.amount),0);
+    const outstanding = loans.reduce((s,l)=>s+outstandingFor(l),0);
+
+    const count = status =>
+      loans.filter(l=>effectiveStatus(l)===status).length;
+
+    const active = count("Active") + count("Overdue") +
+      count("Defaulted") + count("Long Overdue");
+
+    return pageHeader("Dashboard","A live overview of your loan portfolio.") +
+      `<div class="stats-grid">
+        ${stat("Total Loans",loans.length)}
+        ${stat("Total Principal Lent",money(principal),true)}
+        ${stat("Total Interest",money(interest),true)}
+        ${stat("Total Payable",money(payable),true)}
+        ${stat("Total Amount Paid",money(paid),true)}
+        ${stat("Outstanding Balance",money(outstanding),true)}
+        ${stat("Active Loans",active)}
+        ${stat("Fully Paid Loans",count("Fully Paid"))}
+      </div>
+      <div class="dashboard-lower">
+        <section class="panel">
+          <h3>Loan Status Breakdown</h3>
+          <div class="breakdown">
+            ${statuses.map(s=>`
+              <div class="break-row">
+                <span class="break-left">
+                  <i class="dot" style="background:${({
+                    Active:"#00B050",
+                    "Fully Paid":"#2e6bd1",
+                    Overdue:"#e6a23c",
+                    Defaulted:"#d92d20",
+                    "Long Overdue":"#7a271a"
+                  })[s]}"></i>${s}
+                </span>
+                <span class="break-count">${count(s)}</span>
+              </div>
+            `).join("")}
+          </div>
+        </section>
+        <section class="panel">
+          <h3>Portfolio at a glance</h3>
+          <div class="breakdown">
+            <div class="break-row"><span>Recorded payments</span><strong>${payments.length}</strong></div>
+            <div class="break-row"><span>Average loan size</span><strong>${money(loans.length?principal/loans.length:0)}</strong></div>
+            <div class="break-row"><span>Collection rate</span><strong>${payable?(paid/payable*100).toFixed(1):"0.0"}%</strong></div>
+          </div>
+        </section>
+      </div>`;
+  }
+
+  function loanCard(loan) {
+    const paid = paidFor(loan.id);
+    const balance = outstandingFor(loan);
+    const status = effectiveStatus(loan);
+
+    return `<article class="loan-card">
+      <div class="card-top">
+        <div>
+          <div class="loan-id">LOAN #${esc(loan.loanNumber||"—")}</div>
+          <div class="borrower">${esc(loan.fullName)}</div>
+        </div>
+        <span class="badge ${statusClass(status)}">${esc(status)}</span>
+      </div>
+
+      <div class="loan-metrics">
+        <div><div class="metric-label">Principal</div><div class="metric-value">${money(loan.principal)}</div></div>
+        <div><div class="metric-label">Interest rate</div><div class="metric-value">${number(loan.rate)}%</div></div>
+        <div><div class="metric-label">Duration</div><div class="metric-value">${esc(loan.duration)} months</div></div>
+        <div><div class="metric-label">Monthly repayment</div><div class="metric-value">${money(loan.monthlyRepayment)}</div></div>
+        <div><div class="metric-label">Total payable</div><div class="metric-value">${money(loan.totalPayable)}</div></div>
+        <div><div class="metric-label">Outstanding</div><div class="metric-value">${money(balance)}</div></div>
+      </div>
+
+      <div class="card-meta">
+        Telephone: ${esc(loan.phone||"—")}<br>
+        Guarantor: ${esc(loan.guarantorName||"—")}<br>
+        Paid: ${money(paid)}
+      </div>
+
+      <div class="card-actions">
+        <button class="btn secondary small" data-edit-loan="${loan.id}">Edit</button>
+        <button class="btn danger small" data-delete-loan="${loan.id}">Delete</button>
+      </div>
+    </article>`;
+  }
+
+  function renderLoans() {
+    return pageHeader(
+      "Loans",
+      "Manage borrower records, loan terms and balances.",
+      '<button class="btn success" id="newLoanBtn">＋ New Loan</button>'
+    ) +
+    `<div class="list-toolbar">
+      <input id="loanSearch" class="search" type="search" placeholder="Search borrower, loan ID or phone…">
+      <span class="muted">${loans.length} loans</span>
+    </div>
+    <div id="loanList" class="loan-grid">
+      ${loans.length ? loans.map(loanCard).join("") :
+        '<div class="empty"><strong>No loans yet</strong>Create your first loan to get started.</div>'}
+    </div>`;
+  }
+
+  function paymentCard(payment) {
+    const loan = loans.find(l=>l.id===payment.loanId);
+
+    return `<article class="payment-card">
+      <div class="card-top">
+        <div>
+          <div class="loan-id">PAYMENT · ${dateText(payment.date)}</div>
+          <h4>${esc(loan?.fullName||payment.borrowerName||"Loan record unavailable")}</h4>
+        </div>
+        <span class="badge status-paid">${esc(payment.method||"Payment")}</span>
+      </div>
+      <div class="payment-amount">${money(payment.amount)}</div>
+      <div class="card-meta">
+        Loan #${esc(payment.loanNumber||loan?.loanNumber||"—")}<br>
+        ${esc(payment.monthCovered||"No month specified")}<br>
+        Received by: ${esc(payment.receivedBy||"—")}<br>
+        ${esc(payment.notes||"")}
+      </div>
+      <div class="card-actions">
+        <button class="btn danger small" data-delete-payment="${payment.id}">Delete payment</button>
+      </div>
+    </article>`;
+  }
+
+  function renderPayments() {
+    return pageHeader(
+      "Payments",
+      "Record and review repayments.",
+      '<button class="btn success" id="newPaymentBtn">＋ Record Payment</button>'
+    ) +
+    `<div class="payment-grid">
+      ${payments.length ? payments.map(paymentCard).join("") :
+        '<div class="empty"><strong>No payments recorded</strong>Recorded payments will appear here.</div>'}
+    </div>`;
+  }
+
+  function renderAbout() {
+    return pageHeader("About","Application information.") +
+      `<section class="panel about-card">
+        <div class="about-logo">G&amp;Y</div>
+        <h3>G &amp; Y Services</h3>
+        <h2>G &amp; Y Services Loan Tracker</h2>
+        <p>A loan administration tool for managing borrower details, calculating repayments, recording collections and monitoring outstanding balances.</p>
+        <p><strong>Version:</strong> 1.0.0</p>
+        <p><strong>Privacy:</strong> This application is protected by Firebase Authentication. Your records are stored in your Firebase project and separated by account.</p>
+        <p><strong>Support:</strong> Contact your G &amp; Y Services system administrator for assistance.</p>
+      </section>`;
+  }
+
+  function render() {
+    if (!currentUser) return;
+
+    const content = currentPage==="dashboard" ? renderDashboard()
+      : currentPage==="loans" ? renderLoans()
+      : currentPage==="payments" ? renderPayments()
+      : renderAbout();
+
+    $("mainContent").innerHTML = content;
+
+    if (currentPage==="loans") {
+      $("newLoanBtn").addEventListener("click",()=>openLoanModal());
+
+      $("loanSearch").addEventListener("input",event=>{
+        const term=event.target.value.toLowerCase();
+        const matches=loans.filter(l=>
+          [l.fullName,l.loanNumber,l.phone].some(v=>
+            String(v||"").toLowerCase().includes(term)
+          )
+        );
+
+        $("loanList").innerHTML=matches.length
+          ? matches.map(loanCard).join("")
+          : '<div class="empty"><strong>No matching loans</strong>Try another search.</div>';
+
+        bindLoanActions();
+      });
+
+      bindLoanActions();
+    }
+
+    if (currentPage==="payments") {
+      $("newPaymentBtn").addEventListener("click",openPaymentModal);
+      bindPaymentActions();
+    }
+  }
+
+  function bindLoanActions() {
+    document.querySelectorAll("[data-edit-loan]").forEach(button=>{
+      button.addEventListener("click",()=>{
+        openLoanModal(loans.find(l=>l.id===button.dataset.editLoan));
+      });
+    });
+
+    document.querySelectorAll("[data-delete-loan]").forEach(button=>{
+
+      button.addEventListener("click",async()=>{
+        const loan=loans.find(l=>l.id===button.dataset.deleteLoan);
+        if(!loan) return;
+
+        if(!confirm(`Delete loan #${loan.loanNumber} for ${loan.fullName}? This will also delete its payment records.`)) return;
+
+        try {
+          const relatedPayments=payments.filter(p=>p.loanId===loan.id);
+
+          for(const payment of relatedPayments) {
+            await deleteDoc(userDoc("payments",payment.id));
+          }
+
+          await deleteDoc(userDoc("loans",loan.id));
+          showToast("Loan and its payment records deleted.");
+        } catch(error) {
+          showToast(friendlyError(error),"error");
+        }
+      });
+    });
+  }
+
+  function bindPaymentActions() {
+    document.querySelectorAll("[data-delete-payment]").forEach(button=>{
+      button.addEventListener("click",async()=>{
+        const payment=payments.find(p=>p.id===button.dataset.deletePayment);
+        if(!payment) return;
+
+        if(!confirm(`Delete this payment of ${money(payment.amount)}?`)) return;
+
+        try {
+          await deleteDoc(userDoc("payments",payment.id));
+          showToast("Payment deleted. Outstanding balance recalculated.");
+        } catch(error) {
+          showToast(friendlyError(error),"error");
+        }
+      });
+    });
+  }
+
+  function today() {
+    const d=new Date();
+    const local=new Date(d.getTime()-d.getTimezoneOffset()*60000);
+    return local.toISOString().slice(0,10);
+  }
+
+  function field(name,label,type="text",value="",required=false,placeholder="") {
+    return `<div class="field">
+      <label for="${name}">${label}${required?" *":""}</label>
+      <input
+        id="${name}"
+        name="${name}"
+        type="${type}"
+        value="${esc(value)}"
+        placeholder="${esc(placeholder)}"
+        ${required?"required":""}
+        ${type==="number"?'min="0" step="any"':""}
+      >
+    </div>`;
+  }
+
+  function selectField(name,label,options,value="") {
+    return `<div class="field">
+      <label for="${name}">${label}</label>
+      <select id="${name}" name="${name}">
+        ${options.map(option=>`
+          <option value="${esc(option)}" ${option===value?"selected":""}>${esc(option)}</option>
+        `).join("")}
+      </select>
+    </div>`;
+  }
+
+  function textareaField(name,label,value="",placeholder="") {
+    return `<div class="field">
+      <label for="${name}">${label}</label>
+      <textarea id="${name}" name="${name}" placeholder="${esc(placeholder)}">${esc(value)}</textarea>
+    </div>`;
+  }
+
+  function openLoanModal(existing=null) {
+    const loan=existing||{};
+    const editing=!!existing;
+
+    $("modalRoot").innerHTML=`
+      <div class="modal-backdrop" id="loanBackdrop">
+        <section class="modal">
+          <div class="modal-head">
+            <div>
+              <h3>${editing?"Edit Loan Record":"Register New Loan"}</h3>
+              <small class="muted">${editing?"Update borrower and loan details":"Complete the borrower and loan information below"}</small>
+            </div>
+            <button class="close" id="closeLoanModal" type="button">×</button>
+          </div>
+
+          <form id="loanForm">
+            <div class="modal-body">
+
+              <section class="form-section">
+                <h4>1. Borrower's personal information</h4>
+                <div class="form-grid">
+                  ${field("fullName","Full name","text",loan.fullName||"",true,"Borrower's full name")}
+                  ${field("phone","Phone number","tel",loan.phone||"",true,"08012345678")}
+                  ${field("email","Email address","email",loan.email||"")}
+                  ${field("dob","Date of birth","date",loan.dob||"")}
+                  ${field("address","Residential address","text",loan.address||"")}
+                  ${field("occupation","Occupation / Business","text",loan.occupation||"")}
+                  ${field("nin","NIN","text",loan.nin||"")}
+                  ${field("bvn","BVN","text",loan.bvn||"")}
+                  ${field("idType","Means of identification","text",loan.idType||"","", "e.g. National ID")}
+                  ${field("idNumber","ID number","text",loan.idNumber||"")}
+                  ${field("bankName","Bank name","text",loan.bankName||"")}
+                  ${field("accountNumber","Bank account number","text",loan.accountNumber||"")}
+                  ${field("accountName","Account name","text",loan.accountName||"")}
+                </div>
+              </section>
+
+              <section class="form-section">
+                <h4>2. Guarantor information</h4>
+                <div class="form-grid">
+                  ${field("guarantorName","Guarantor's full name","text",loan.guarantorName||"")}
+                  ${field("guarantorPhone","Guarantor's phone number","tel",loan.guarantorPhone||"")}
+                  ${field("guarantorAddress","Guarantor's address","text",loan.guarantorAddress||"")}
+                  ${field("guarantorOccupation","Guarantor's occupation","text",loan.guarantorOccupation||"")}
+                  ${field("guarantorRelationship","Relationship to borrower","text",loan.guarantorRelationship||"")}
+                  ${field("guarantorId","Guarantor's ID number","text",loan.guarantorId||"")}
+                </div>
+              </section>
+
+              <section class="form-section">
+                <h4>3. Loan agreement details</h4>
+                <div class="form-grid">
+                  ${field("principal","Amount given out (₦)","number",loan.principal??"",true)}
+                  ${field("rate","Interest rate (%) per month","number",loan.rate??"",true)}
+                  ${field("duration","Duration (months)","number",loan.duration??"",true)}
+                  ${field("loanDate","Date loan was given","date",loan.loanDate||today(),true)}
+                  ${field("dueDate","Loan due date","date",loan.dueDate||"")}
+                  ${field("purpose","Purpose of loan","text",loan.purpose||"","", "e.g. Business")}
+                  ${selectField("loanStatus","Loan status",["Active","Defaulted","Long Overdue"],loan.status||"Active")}
+                </div>
+                <div class="field" style="margin-top:14px">
+                  <label>Loan calculation preview</label>
+                  <div class="preview-grid">
+                    <div class="preview-item"><span>Interest</span><strong id="previewInterest">₦0.00</strong></div>
+                    <div class="preview-item"><span>Total payable</span><strong id="previewTotal">₦0.00</strong></div>
+                    <div class="preview-item"><span>Monthly repayment</span><strong id="previewMonthly">₦0.00</strong></div>
+                  </div>
+                </div>
+              </section>
+
+              <section class="form-section">
+                <h4>4. Additional information</h4>
+                <div class="form-grid">
+                  ${field("collateral","Collateral / Security","text",loan.collateral||"")}
+                  ${field("witness","Witness name","text",loan.witness||"")}
+                </div>
+                <div style="margin-top:13px">
+                  ${textareaField("notes","Notes / Special agreement",loan.notes||"","Enter additional loan conditions, arrangements or remarks")}
+                </div>
+              </section>
+
+            </div>
+
+            <div class="modal-foot">
+              <button class="btn secondary" type="button" id="cancelLoan">Cancel</button>
+              <button class="btn success" type="submit" id="saveLoan">
+                ${editing?"Update Loan":"Save Loan Record"}
+              </button>
+            </div>
+          </form>
+        </section>
+      </div>`;
+
+    const close=()=>{
+      $("modalRoot").innerHTML="";
+    };
+
+    $("closeLoanModal").addEventListener("click",close);
+    $("cancelLoan").addEventListener("click",close);
+
+    $("loanBackdrop").addEventListener("click",event=>{
+      if(event.target.id==="loanBackdrop") close();
+    });
+
+    const updatePreview=()=>{
+      const principal=number($("principal").value);
+      const rate=number($("rate").value);
+      const duration=number($("duration").value);
+
+      const result=calcLoan(principal,rate,duration);
+
+      $("previewInterest").textContent=money(result.interest);
+      $("previewTotal").textContent=money(result.payable);
+      $("previewMonthly").textContent=money(result.monthly);
+    };
+
+    ["principal","rate","duration"].forEach(id=>{
+      $(id).addEventListener("input",updatePreview);
+    });
+
+    updatePreview();
+
+    $("loanForm").addEventListener("submit",async event=>{
+      event.preventDefault();
+
+      const button=$("saveLoan");
+      setBusy(button,true,"Saving loan…");
+
+      try {
+        const principal=number($("principal").value);
+        const rate=number($("rate").value);
+        const duration=number($("duration").value);
+
+        if(principal<=0 || rate<0 || duration<=0) {
+          throw new Error("Enter a valid loan amount, interest rate and duration.");
+        }
+
+        const result=calcLoan(principal,rate,duration);
+
+        const data={
+          fullName:$("fullName").value.trim(),
+          phone:$("phone").value.trim(),
+          email:$("email").value.trim(),
+          dob:$("dob").value,
+          address:$("address").value.trim(),
+          occupation:$("occupation").value.trim(),
+          nin:$("nin").value.trim(),
+          bvn:$("bvn").value.trim(),
+          idType:$("idType").value.trim(),
+          idNumber:$("idNumber").value.trim(),
+          bankName:$("bankName").value.trim(),
+          accountNumber:$("accountNumber").value.trim(),
+          accountName:$("accountName").value.trim(),
+
+          guarantorName:$("guarantorName").value.trim(),
+          guarantorPhone:$("guarantorPhone").value.trim(),
+          guarantorAddress:$("guarantorAddress").value.trim(),
+          guarantorOccupation:$("guarantorOccupation").value.trim(),
+          guarantorRelationship:$("guarantorRelationship").value.trim(),
+          guarantorId:$("guarantorId").value.trim(),
+
+          principal,
+          rate,
+          duration,
+          loanDate:$("loanDate").value,
+          dueDate:$("dueDate").value,
+          purpose:$("purpose").value.trim(),
+          status:$("loanStatus").value,
+
+          totalInterest:result.interest,
+          totalPayable:result.payable,
+          monthlyRepayment:result.monthly,
+
+          collateral:$("collateral").value.trim(),
+          witness:$("witness").value.trim(),
+          notes:$("notes").value.trim(),
+
+          updatedAt:serverTimestamp()
+        };
+
+        if(!data.fullName || !data.phone) {
+          throw new Error("Borrower's name and phone number are required.");
+        }
+
+        if(data.dueDate && data.loanDate && data.dueDate<data.loanDate) {
+          throw new Error("Due date cannot be earlier than the loan date.");
+        }
+
+        if(editing) {
+          await updateDoc(userDoc("loans",loan.id),data);
+          showToast("Loan record updated successfully.");
+        } else {
+          const counterRef=doc(db,"users",currentUser.uid,"meta","loanCounter");
+
+          const loanNumber=await runTransaction(db,async transaction=>{
+            const counterSnap=await transaction.get(counterRef);
+            const nextNumber=(counterSnap.exists()?number(counterSnap.data().value):0)+1;
+
+            transaction.set(counterRef,{
+              value:nextNumber,
+              updatedAt:serverTimestamp()
+            });
+
+            return nextNumber;
+          });
+
+          await addDoc(userCollection("loans"),{
+            ...data,
+            loanNumber:"GY-"+String(loanNumber).padStart(4,"0"),
+            createdAt:serverTimestamp()
+          });
+
+          showToast("New loan recorded successfully.");
+        }
+
+        $("modalRoot").innerHTML="";
+        navigate("loans");
+
+      } catch(error) {
+        showToast(friendlyError(error),"error");
+      } finally {
+        setBusy(button,false);
+      }
+    });
+  }
+
+  function openPaymentModal() {
+    if(!loans.length) {
+      showToast("Please create a loan before recording a payment.","error");
+      return;
+    }
+
+    const eligible=loans.filter(l=>outstandingFor(l)>0);
+
+    if(!eligible.length) {
+      showToast("There are no outstanding loans to receive payments.","error");
+      return;
+    }
+
+    $("modalRoot").innerHTML=`
+      <div class="modal-backdrop" id="paymentBackdrop">
+        <section class="modal narrow">
+          <div class="modal-head">
+            <h3>Record Loan Payment</h3>
+            <button class="close" id="closePaymentModal" type="button">×</button>
+          </div>
+
+          <form id="paymentForm">
+            <div class="modal-body">
+              <div class="stack">
+                <div class="field">
+                  <label for="paymentLoan">Select borrower / loan *</label>
+                  <select id="paymentLoan" required>
+                    <option value="">Choose a loan</option>
+                    ${eligible.map(l=>`
+                      <option value="${l.id}">
+                        ${esc(l.fullName)} · ${esc(l.loanNumber)} · Balance ${money(outstandingFor(l))}
+                      </option>
+                    `).join("")}
+                  </select>
+                </div>
+
+                <div class="preview-grid" id="paymentSummary">
+                  <div class="preview-item"><span>Loan amount</span><strong>₦0.00</strong></div>
+                  <div class="preview-item"><span>Already paid</span><strong>₦0.00</strong></div>
+                  <div class="preview-item"><span>Outstanding</span><strong>₦0.00</strong></div>
+                </div>
+
+                ${field("paymentAmount","Amount received (₦)","number","",true)}
+                ${field("paymentDate","Payment date","date",today(),true)}
+                ${selectField("paymentMethod","Payment method",["Bank Transfer","Cash","POS","Mobile Transfer","Other"],"Bank Transfer")}
+                ${field("paymentReference","Transaction reference","text","")}
+                ${field("monthCovered","Month / period covered","text","","","e.g. November 2026")}
+                ${field("receivedBy","Received by","text","G & Y Services")}
+                ${textareaField("paymentNotes","Payment remarks / notes")}
+              </div>
+            </div>
+
+            <div class="modal-foot">
+              <button class="btn secondary" type="button" id="cancelPayment">Cancel</button>
+              <button class="btn success" type="submit" id="savePayment">Save Payment</button>
+            </div>
+          </form>
+        </section>
+      </div>`;
+
+    const close=()=>{$("modalRoot").innerHTML="";};
+
+    $("closePaymentModal").addEventListener("click",close);
+    $("cancelPayment").addEventListener("click",close);
+
+    $("paymentBackdrop").addEventListener("click",event=>{
+      if(event.target.id==="paymentBackdrop") close();
+    });
+
+    const updateSummary=()=>{
+      const loan=loans.find(l=>l.id===$("paymentLoan").value);
+      const summary=$("paymentSummary");
+
+      if(!loan) {
+        summary.innerHTML=`
+          <div class="preview-item"><span>Loan amount</span><strong>₦0.00</strong></div>
+          <div class="preview-item"><span>Already paid</span><strong>₦0.00</strong></div>
+          <div class="preview-item"><span>Outstanding</span><strong>₦0.00</strong></div>`;
+        return;
+      }
+
+      summary.innerHTML=`
+        <div class="preview-item"><span>Loan amount</span><strong>${money(loan.principal)}</strong></div>
+        <div class="preview-item"><span>Already paid</span><strong>${money(paidFor(loan.id))}</strong></div>
+        <div class="preview-item"><span>Outstanding</span><strong>${money(outstandingFor(loan))}</strong></div>`;
+
+      $("paymentAmount").max=outstandingFor(loan);
+    };
+
+    $("paymentLoan").addEventListener("change",updateSummary);
+    updateSummary();
+
+    $("paymentForm").addEventListener("submit",async event=>{
+      event.preventDefault();
+
+      const button=$("savePayment");
+      setBusy(button,true,"Recording payment…");
+
+      try {
+        const loan=loans.find(l=>l.id===$("paymentLoan").value);
+        const amount=number($("paymentAmount").value);
+
+        if(!loan) throw new Error("Please select a valid loan.");
+        if(amount<=0) throw new Error("Enter a valid payment amount.");
+
+        const outstanding=outstandingFor(loan);
+
+        if(amount>outstanding+0.001) {
+          throw new Error("Payment cannot exceed the outstanding balance of "+money(outstanding)+".");
+        }
+
+        const paymentData={
+          loanId:loan.id,
+          loanNumber:loan.loanNumber||"",
+          borrowerName:loan.fullName,
+          amount,
+          date:$("paymentDate").value,
+          method:$("paymentMethod").value,
+          reference:$("paymentReference").value.trim(),
+          monthCovered:$("monthCovered").value.trim(),
+          receivedBy:$("receivedBy").value.trim(),
+          notes:$("paymentNotes").value.trim(),
+          createdAt:serverTimestamp()
+        };
+
+        if(!paymentData.date) throw new Error("Please select a payment date.");
+
+        await addDoc(userCollection("payments"),paymentData);
+
+        showToast("Payment recorded successfully.");
+        $("modalRoot").innerHTML="";
+        navigate("payments");
+
+      } catch(error) {
+        showToast(friendlyError(error),"error");
+      } finally {
+        setBusy(button,false);
+      }
+    });
+  }
+
+</script>
+</body>
+</html>
