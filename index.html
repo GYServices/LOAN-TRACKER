@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -1044,7 +1045,6 @@
         <h2>G &amp; Y Services Loan Tracker</h2>
         <p>A loan administration tool for managing borrower details, calculating repayments, recording collections and monitoring outstanding balances.</p>
         <p><strong>Version:</strong> 1.0.0</p>
-        <p><strong>Built by:</strong> Agah David</p>
         <p><strong>Privacy:</strong> This application is protected by Firebase Authentication. Your records are stored in your Firebase project and separated by account.</p>
         <p><strong>Support:</strong> Contact your G &amp; Y Services system administrator for assistance.</p>
       </section>`;
@@ -1364,7 +1364,10 @@
     const loan=loans.find(l=>l.id===id);
     if(!loan) return;
  
-    if(!confirm(`Delete loan #${loan.loanNumber} for ${loan.fullName}? This also deletes its payments.`)) return;
+    if(!confirm(`Delete loan #${loan.loanNumber} for ${loan.fullName}? This also deletes its payments and protected details. This action cannot be undone.`)) return;
+ 
+    // Require administrator password re-entry immediately before deletion.
+    if (!(await confirmAdminPassword())) return;
  
     try {
       const linked=payments.filter(p=>p.loanId===id);
