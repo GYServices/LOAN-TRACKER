@@ -470,6 +470,129 @@
       .modal { width: 100%; max-height: 94vh; border-radius: 18px 18px 0 0; }
       .modal-body { padding: 18px 16px; }
     }
+  
+    /* Premium G & Y Services redesign — presentation layer only.
+       Existing Firebase logic, collections, document IDs and loan fields remain unchanged. */
+    :root {
+      --navy: #102B24;
+      --green: #A9DDA0;
+      --bg: #F5F7F4;
+      --surface: #ffffff;
+      --text: #26332E;
+      --muted: #718078;
+      --line: #e2e9e3;
+      --radius: 18px;
+    }
+    body { background: #F5F7F4; color: #26332E; }
+    .topbar {
+      margin-left: 252px; min-height: 76px; padding: 14px 30px;
+      background: rgba(255,255,255,.96); color: #102B24;
+      border-bottom: 1px solid #e2e9e3; box-shadow: 0 4px 22px rgba(16,43,36,.05);
+      backdrop-filter: blur(12px);
+    }
+    .mini-mark { background: #102B24; color: #A9DDA0; border-radius: 12px; }
+    .top-brand strong { color: #102B24; font-size: 15px; letter-spacing: -.2px; }
+    .top-brand span, .user-email { color: #718078; }
+    .logout { background: #eef5ed; color: #102B24; border: 1px solid #dce9dc; }
+    .bottom-nav {
+      position: fixed; z-index: 30; left: 0; top: 0; bottom: 0; width: 252px;
+      display: flex; flex-direction: column; justify-content: flex-start; align-items: stretch;
+      gap: 7px; padding: 28px 17px; background: #102B24; border: 0;
+      box-shadow: 8px 0 28px rgba(16,43,36,.08);
+    }
+    .bottom-nav::before {
+      content: "G&Y SERVICES\\A LOAN TRACKER";
+      white-space: pre; display: block; color: #fff; font-size: 19px;
+      font-weight: 850; line-height: 1.55; letter-spacing: .2px;
+      padding: 8px 13px 34px; margin-bottom: 14px;
+      border-bottom: 1px solid rgba(255,255,255,.16);
+    }
+    .nav-item {
+      width: 100%; justify-content: flex-start; text-align: left;
+      color: #c4d4ca; border-radius: 12px; padding: 13px 15px;
+      font-size: 13px; transition: background .18s ease, color .18s ease;
+    }
+    .nav-item:hover { background: rgba(255,255,255,.09); color: #fff; }
+    .nav-item.active { background: #A9DDA0; color: #102B24; }
+    .nav-icon { width: 22px; text-align: center; }
+    .main { max-width: 1500px; margin: 0 0 0 252px; padding: 34px 34px 60px; }
+    .page-heading {
+      min-height: 150px; padding: 28px 30px; margin-bottom: 22px;
+      border-radius: 22px; color: #fff;
+      background: radial-gradient(circle at 85% 15%, rgba(169,221,160,.26), transparent 32%), linear-gradient(118deg,#102B24 0%,#194b3b 65%,#236149 100%);
+      box-shadow: 0 14px 32px rgba(16,43,36,.13);
+    }
+    .page-heading h2 { color: #fff; font-size: clamp(24px,3vw,32px); letter-spacing: -.8px; }
+    .page-heading p { color: #d5e5d9; font-size: 14px; margin: 8px 0 0; }
+    .page-heading .btn { background: #A9DDA0; color: #102B24; border-radius: 11px; padding: 12px 18px; }
+    .stats-grid { gap: 15px; }
+    .stat-card, .panel, .loan-card, .payment-card {
+      border: 1px solid #e3ebe4; border-radius: 17px;
+      box-shadow: 0 5px 18px rgba(16,43,36,.045);
+    }
+    .stat-card { padding: 20px; min-height: 124px; position: relative; overflow: hidden; }
+    .stat-card::after {
+      content: ""; position: absolute; right: -23px; top: -28px; width: 86px; height: 86px;
+      border-radius: 50%; background: rgba(169,221,160,.17);
+    }
+    .stat-label { color: #718078; font-size: 12px; letter-spacing: .15px; }
+    .stat-value { color: #102B24; font-size: 24px; letter-spacing: -.6px; }
+    .stat-value.money { font-size: clamp(16px,1.6vw,21px); }
+    .dashboard-lower { gap: 18px; margin-top: 18px; }
+    .panel { padding: 23px; }
+    .panel h3 { color: #102B24; font-size: 16px; }
+    .break-row { padding: 7px 0; color: #52625a; }
+    .loan-card, .payment-card { padding: 20px; }
+    .borrower, .payment-card h4 { color: #102B24; }
+    .btn { border-radius: 11px; transition: transform .15s ease, box-shadow .15s ease; }
+    .btn:hover { transform: translateY(-1px); box-shadow: 0 6px 15px rgba(16,43,36,.12); }
+    .primary { background: #102B24; color: #fff; }
+    .success { background: #A9DDA0; color: #102B24; }
+    .secondary { background: #eef4ed; color: #244537; }
+    .search, input, select, textarea { border-color: #dce6dd; border-radius: 11px; }
+    input:focus, select:focus, textarea:focus { border-color: #80bd79; box-shadow: 0 0 0 3px rgba(169,221,160,.24); }
+    .auth-screen {
+      background: radial-gradient(circle at 80% 15%, rgba(169,221,160,.22), transparent 30%), linear-gradient(135deg,#102B24,#1d4939);
+    }
+    .auth-card { border: 1px solid rgba(255,255,255,.45); border-radius: 24px; box-shadow: 0 24px 70px rgba(0,0,0,.2); padding: 38px; }
+    .brand-mark { background: #102B24; color: #A9DDA0; border-radius: 16px; }
+    .auth-card h1 { color: #102B24; letter-spacing: -.6px; }
+    .auth-card .btn.primary { background: #102B24; }
+    .modal { border-radius: 20px; box-shadow: 0 24px 80px rgba(0,0,0,.2); }
+    .modal-head h3, .form-section h4 { color: #102B24; }
+    .loading-cover { background: rgba(245,247,244,.9); color: #102B24; }
+    .loader { border-top-color: #4d9a59; }
+    @media(max-width:900px) {
+      .main { padding: 26px 22px 50px; }
+      .stats-grid { grid-template-columns: repeat(2,minmax(0,1fr)); }
+    }
+    @media(max-width:760px) {
+      .topbar { margin-left: 0; padding: 12px 15px; min-height: 66px; }
+      .main { margin: 0; padding: 22px 15px 100px; }
+      .bottom-nav {
+        top: auto; bottom: 0; left: 0; right: 0; width: auto; height: auto;
+        display: grid; grid-template-columns: repeat(4,minmax(0,1fr));
+        flex-direction: row; padding: 8px 8px calc(8px + env(safe-area-inset-bottom));
+        background: #102B24; border-top: 1px solid rgba(255,255,255,.12);
+      }
+      .bottom-nav::before { display: none; }
+      .nav-item { display: grid; justify-items: center; justify-content: center; gap: 4px; color: #c4d4ca; padding: 8px 2px; font-size: 10px; }
+      .nav-icon { width: auto; font-size: 17px; }
+      .nav-item.active { background: #A9DDA0; color: #102B24; }
+      .page-heading { min-height: 130px; padding: 22px 20px; border-radius: 17px; align-items: flex-start; }
+      .page-heading .btn { white-space: nowrap; }
+    }
+    @media(max-width:480px) {
+      .page-heading { flex-direction: column; gap: 15px; }
+      .stats-grid { gap: 10px; }
+      .stat-card { padding: 14px; min-height: 98px; }
+      .stat-value { font-size: 19px; }
+      .stat-value.money { font-size: 14px; }
+      .dashboard-lower { gap: 12px; }
+      .panel { padding: 17px; }
+      .auth-card { padding: 28px 22px; }
+    }
+
   </style>
 </head>
 <body>
