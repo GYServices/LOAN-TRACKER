@@ -172,12 +172,14 @@
   }
  
   function effectiveStatus(loan) {
-    if (paidFor(loan.id) >= number(loan.totalPayable) && number(loan.totalPayable) > 0) {
-      return "Fully Paid";
+    if (paidFor(loan.id) >= number(loan.totalPayable) && number(loan.totalPayable) > 0) return "Fully Paid";
+    const savedStatus = loan.status === "Fully Paid" ? (loan.statusBeforePaid || "Active") : (loan.status || "Active");
+    if (savedStatus === "Active" && loan.dueDate) {
+      const today = new Date(); today.setHours(0,0,0,0);
+      const due = new Date(loan.dueDate + "T00:00:00");
+      if (!Number.isNaN(due.getTime()) && due < today && outstandingFor(loan) > 0) return "Overdue";
     }
-    return loan.status === "Fully Paid"
-      ? (loan.statusBeforePaid || "Active")
-      : (loan.status || "Active");
+    return savedStatus;
   }
  
   function friendlyError(error) {
@@ -368,6 +370,15 @@
     const active = count("Active") + count("Overdue") +
       count("Defaulted") + count("Long Overdue");
  
+    const today = new Date(); today.setHours(0,0,0,0);
+    const soon = new Date(today); soon.setDate(soon.getDate()+7);
+    const dueSoon = loans.filter(loan => {
+      if (!loan.dueDate || outstandingFor(loan) <= 0 || effectiveStatus(loan) === "Fully Paid") return false;
+      const due = new Date(loan.dueDate + "T00:00:00");
+      return !Number.isNaN(due.getTime()) && due >= today && due <= soon;
+    }).sort((a,b)=>a.dueDate.localeCompare(b.dueDate));
+    const overdueLoans = loans.filter(loan => effectiveStatus(loan) === "Overdue")
+      .sort((a,b)=>(a.dueDate||"").localeCompare(b.dueDate||""));
     return pageHeader(
       "Dashboard",
       "A live overview of your loan portfolio.",
@@ -383,7 +394,20 @@
         ${stat("Active Loans",active)}
         ${stat("Fully Paid Loans",count("Fully Paid"))}
       </div>
-      <div class="dashboard-lower">
+      <div class="dashboard-lower alerts-grid">
+        <section class="panel">
+          <h3>Overdue repayments <span class="alert-count">${overdueLoans.length}</span></h3>
+          <div class="breakdown">
+            ${overdueLoans.length ? overdueLoans.map(loan=>`<div class="break-row"><span>${esc(loan.fullName)} · Due ${dateText(loan.dueDate)}</span><strong>${money(outstandingFor(loan))}</strong></div>`).join("") : '<p class="muted">No overdue repayments. Great work!</p>'}
+          </div>
+        </section>
+        <section class="panel">
+          <h3>Due in the next 7 days <span class="alert-count">${dueSoon.length}</span></h3>
+          <div class="breakdown">
+            ${dueSoon.length ? dueSoon.map(loan=>`<div class="break-row"><span>${esc(loan.fullName)} · ${dateText(loan.dueDate)}</span><strong>${money(outstandingFor(loan))}</strong></div>`).join("") : '<p class="muted">No repayments due in the next 7 days.</p>'}
+          </div>
+        </section>
+      </div>      <div class="dashboard-lower">
         <section class="panel">
           <h3>Loan Status Breakdown</h3>
           <div class="breakdown">
@@ -486,6 +510,7 @@
         ${esc(payment.notes||"")}
       </div>
       <div class="card-actions">
+        <button class="btn secondary small" data-print-payment="${payment.id}">Print receipt</button>
         <button class="btn danger small" data-delete-payment="${payment.id}">Delete payment</button>
       </div>
     </article>`;
@@ -754,6 +779,44 @@
     document.querySelectorAll("[data-delete-payment]").forEach(button=>{
       button.addEventListener("click",()=>deletePayment(button.dataset.deletePayment));
     });
+    document.querySelectorAll("[data-print-payment]").forEach(button=>{
+      button.addEventListener("click",()=>printPaymentReceipt(button.dataset.printPayment));
+    });
+  }
+
+  function printPaymentReceipt(paymentId) {
+    const payment = payments.find(item=>item.id===paymentId);
+    if (!payment) return showToast("Payment record not found.","error");
+    const loan = loans.find(item=>item.id===payment.loanId);
+    const borrower = payment.borrowerName || loan?.fullName || "Borrower";
+    const balance = loan ? outstandingFor(loan) : null;
+    const receiptWindow = window.open("","_blank","width=720,height=800");
+    if (!receiptWindow) return showToast("Allow pop-ups to print the receipt.","error");
+    receiptWindow.document.write(`<!doctype html><html><head><title>Payment Receipt</title><style>
+      body{font-family:Arial,sans-serif;color:#18372d;margin:0;padding:36px}
+      .receipt{max-width:620px;margin:auto;border:1px solid #dce7df;padding:34px;border-radius:14px}
+      header{border-bottom:3px solid #1d6048;padding-bottom:18px;margin-bottom:24px}
+      h1{margin:0 0 6px;font-size:24px}.muted{color:#687a70;font-size:12px}
+      .tag{display:inline-block;background:#e8f4e9;padding:8px 12px;border-radius:20px;font-weight:bold}
+      .row{display:flex;justify-content:space-between;gap:16px;padding:13px 0;border-bottom:1px solid #e7eee9}
+      .row strong{text-align:right}.amount{font-size:28px;color:#1d6048;font-weight:bold;margin:22px 0}
+      footer{margin-top:32px;color:#687a70;font-size:12px;text-align:center}
+      @media print{body{padding:0}.receipt{border:0}}
+      </style></head><body><main class="receipt">
+      <header><h1>G &amp; Y Services</h1><div class="muted">LOAN REPAYMENT RECEIPT</div></header>
+      <div class="tag">PAYMENT RECEIVED</div><div class="amount">${esc(money(payment.amount))}</div>
+      <div class="row"><span>Receipt reference</span><strong>${esc(payment.id.slice(-8).toUpperCase())}</strong></div>
+      <div class="row"><span>Borrower</span><strong>${esc(borrower)}</strong></div>
+      <div class="row"><span>Loan number</span><strong>${esc(payment.loanNumber||loan?.loanNumber||"—")}</strong></div>
+      <div class="row"><span>Payment date</span><strong>${esc(dateText(payment.date))}</strong></div>
+      <div class="row"><span>Payment method</span><strong>${esc(payment.method||"—")}</strong></div>
+      <div class="row"><span>Month covered</span><strong>${esc(payment.monthCovered||"—")}</strong></div>
+      ${balance===null?"":`<div class="row"><span>Outstanding balance</span><strong>${esc(money(balance))}</strong></div>`}
+      <div class="row"><span>Received by</span><strong>${esc(payment.receivedBy||"G & Y Services")}</strong></div>
+      ${payment.notes?`<div class="row"><span>Notes</span><strong>${esc(payment.notes)}</strong></div>`:""}
+      <footer>Thank you. Please keep this receipt for your records.<br>G &amp; Y Services</footer>
+      </main><script>window.onload=()=>window.print()<\/script></body></html>`);
+    receiptWindow.document.close();
   }
  
   const loanFields = [
