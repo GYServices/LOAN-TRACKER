@@ -759,7 +759,27 @@
     const collected = payments.reduce((sum, payment) => sum + number(payment.amount), 0);
     const outstanding = loans.reduce((sum, loan) => sum + outstandingFor(loan), 0);
     const statusesCount = status => loans.filter(loan => effectiveStatus(loan) === status).length;
-    return pageHeader("Reports & Analytics","A quick portfolio summary based on your existing records.") +
+    const monthKeys = [];
+    const now = new Date();
+    for (let offset=5; offset>=0; offset--) {
+      const date = new Date(now.getFullYear(), now.getMonth()-offset, 1);
+      monthKeys.push({key: date.getFullYear()+"-"+String(date.getMonth()+1).padStart(2,"0"),
+        label: date.toLocaleDateString("en-NG",{month:"short"})});
+    }
+    const monthly = monthKeys.map(month => {
+      const monthPayments = payments.filter(payment => String(payment.date||"").slice(0,7)===month.key)
+        .reduce((sum,payment)=>sum+number(payment.amount),0);
+      const monthLoans = loans.filter(loan => String(loan.createdAt?.toDate ? loan.createdAt.toDate().toISOString() : loan.createdAt || loan.dateCreated || loan.date || "").slice(0,7)===month.key)
+        .reduce((sum,loan)=>sum+number(loan.principal),0);
+      return {...month, collected:monthPayments, lent:monthLoans};
+    });
+    const maxMonthly = Math.max(1,...monthly.map(item=>Math.max(item.collected,item.lent)));
+    const averageCollection = monthly.reduce((sum,item)=>sum+item.collected,0)/6;
+    const interestEarned = Math.max(0,collected-loans.reduce((sum,loan)=>{
+      const principalPaid = Math.min(number(loan.principal), payments.filter(payment=>payment.loanId===loan.id).reduce((s,p)=>s+number(p.amount),0));
+      return sum+principalPaid;
+    },0));
+    return pageHeader("Reports & Analytics","Understand lending, repayments and your loan portfolio.") +
       `<div class="stats-grid">
         ${stat("Loans issued",loans.length)}
         ${stat("Principal disbursed",money(principal),true)}
@@ -768,6 +788,24 @@
         ${stat("Outstanding",money(outstanding),true)}
         ${stat("Collection rate",payable?(collected/payable*100).toFixed(1)+"%":"0.0%")}
       </div>
+      <section class="panel report-panel analytics-panel">
+        <div class="analytics-heading"><div><h3>Monthly financial activity</h3><p class="muted">Last six months · based on recorded loan and payment dates</p></div>
+          <div class="chart-legend"><span><i class="legend-dot lent"></i>Principal lent</span><span><i class="legend-dot collected"></i>Payments collected</span></div>
+        </div>
+        <div class="monthly-chart" role="img" aria-label="Monthly principal lent and payments collected for the last six months">
+          ${monthly.map(item=>`<div class="month-column">
+            <div class="month-bars">
+              <div class="month-bar lent" style="height:${Math.max(3,item.lent/maxMonthly*100)}%" title="Principal lent: ${money(item.lent)}"></div>
+              <div class="month-bar collected" style="height:${Math.max(3,item.collected/maxMonthly*100)}%" title="Payments collected: ${money(item.collected)}"></div>
+            </div>
+            <span>${esc(item.label)}</span>
+          </div>`).join("")}
+        </div>
+        <div class="monthly-breakdown">
+          ${monthly.map(item=>`<div class="monthly-row"><strong>${esc(item.label)}</strong><span>Lent: ${money(item.lent)}</span><span>Collected: ${money(item.collected)}</span></div>`).join("")}
+        </div>
+        <div class="analytics-average"><span>Average monthly collections</span><strong>${money(averageCollection)}</strong></div>
+      </section>
       <section class="panel report-panel">
         <h3>Loan status summary</h3>
         <div class="breakdown">
