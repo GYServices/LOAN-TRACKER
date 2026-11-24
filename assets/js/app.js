@@ -497,7 +497,7 @@
   function getBorrowerGroups() {
     const groups = new Map();
     loans.forEach(loan => {
-      const digits = String(loan.phone || "").replace(/\\D/g, "");
+      const digits = String(loan.phone || "").replace(/\D/g, "");
       const key = digits ? "phone:" + digits : "loan:" + loan.id;
       if (!groups.has(key)) groups.set(key, {key, name:loan.fullName || "Unnamed borrower", phone:loan.phone || "", loans:[]});
       groups.get(key).loans.push(loan);
