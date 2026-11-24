@@ -597,3 +597,21 @@
   .nav-icon { font-size:16px; }
   .calculator-results { grid-template-columns:1fr; }
 }
+
+/* Everyday calculator */
+.standard-calculator-panel { max-width: 520px; margin: 0 auto; padding: 24px; }
+.standard-calculator { max-width: 390px; margin: 0 auto; border-radius: 24px; padding: 20px; background: linear-gradient(160deg,#173b30,#102b24); box-shadow: 0 22px 55px rgba(16,43,36,.22); color: #f8fbf7; }
+.calculator-topline,.calculator-footer { display:flex; justify-content:space-between; align-items:center; color:#b8d1c2; font-size:10px; letter-spacing:1.2px; font-weight:800; }
+.calculator-display { min-height:112px; display:flex; flex-direction:column; justify-content:flex-end; align-items:flex-end; padding:20px 4px 18px; overflow:hidden; }
+.calculator-expression { min-height:20px; color:#a9c5b4; font-size:13px; }
+.calculator-screen { max-width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:clamp(34px,8vw,48px); font-weight:650; letter-spacing:-1.5px; font-variant-numeric:tabular-nums; }
+.calculator-keys { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:10px; }
+.calc-key { min-height:64px; border:0; border-radius:17px; background:#f4f6f2; color:#173b30; font-size:22px; font-weight:650; box-shadow:inset 0 -2px 0 rgba(0,0,0,.05); transition:transform .12s,filter .12s; }
+.calc-key:active { transform:scale(.96); filter:brightness(.94); }
+.calc-function { background:#dce8df; color:#1b4b39; }
+.calc-operator { background:#c3dec8; color:#153d2d; font-size:25px; }
+.calc-equals { background:#a9dda0; color:#102b24; }
+.calc-zero { grid-column:span 2; text-align:left; padding-left:26px; }
+.calculator-footer { margin-top:16px; letter-spacing:0; font-weight:600; }
+.calc-backspace { border:0; background:transparent; color:#d8eadc; font-size:11px; font-weight:700; padding:5px 0; }
+@media(max-width:480px) { .standard-calculator-panel { padding:15px; } .standard-calculator { padding:16px; } .calc-key { min-height:58px; border-radius:14px; } .calculator-display { min-height:100px; } }
