@@ -585,3 +585,15 @@
     }
 
   
+
+/* Calculator and reports additions */
+.calculator-panel { max-width: 900px; }
+.calculator-results { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px; margin-top:24px; }
+.calculator-note { font-size:12px; line-height:1.6; margin-top:18px; }
+.report-panel { margin-top:18px; }
+@media(max-width:760px) {
+  .bottom-nav { grid-template-columns:repeat(6,minmax(0,1fr)); gap:2px; overflow-x:auto; }
+  .nav-item { min-width:0; font-size:9px; }
+  .nav-icon { font-size:16px; }
+  .calculator-results { grid-template-columns:1fr; }
+}
