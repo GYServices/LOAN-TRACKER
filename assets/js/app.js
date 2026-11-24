@@ -29,6 +29,58 @@
     ? new Date(value + (String(value).length === 10 ? "T00:00:00" : "")).toLocaleDateString("en-NG")
     : "—";
  
+
+  function csvCell(value) {
+    let text=String(value??"");
+    if(/^[=+@\- \t\r]/.test(text)) text="'"+text;
+    return '"'+text.replace(/"/g,'""')+'"';
+  }
+  function downloadCsv(filename,headers,rows) {
+    const csv="\uFEFF"+[headers,...rows].map(row=>row.map(csvCell).join(",")).join("\r\n");
+    const blob=new Blob([csv],{type:"text/csv;charset=utf-8;"});
+    const url=URL.createObjectURL(blob),link=document.createElement("a");
+    link.href=url;link.download=filename;link.style.display="none";
+    document.body.appendChild(link);link.click();link.remove();URL.revokeObjectURL(url);
+    showToast(filename+" exported successfully.");
+  }
+  function exportLoansCsv() {
+    const headers=["Loan Number","Borrower","Telephone","Address","Classification","Employer","Loan Date","Due Date","Purpose","Principal (NGN)","Rate (%)","Duration (Months)","Monthly Repayment (NGN)","Interest (NGN)","Total Payable (NGN)","Total Paid (NGN)","Outstanding (NGN)","Status","Notes"];
+    const rows=loans.map(loan=>[loan.loanNumber,loan.fullName,loan.phone,loan.address,loan.classification,loan.employer,loan.loanDate,loan.dueDate,loan.purpose,number(loan.principal),number(loan.rate),number(loan.duration),number(loan.monthlyRepayment),number(loan.totalInterest),number(loan.totalPayable),paidFor(loan.id),outstandingFor(loan),effectiveStatus(loan),loan.notes]);
+    downloadCsv("GYS-Loan-Records.csv",headers,rows);
+  }
+  function exportPaymentsCsv() {
+    const headers=["Payment Date","Borrower","Loan Number","Amount (NGN)","Payment Method","Month Covered","Received By","Notes","Payment Reference"];
+    const rows=payments.map(payment=>{const loan=loans.find(item=>item.id===payment.loanId);return [payment.date,payment.borrowerName||loan?.fullName,payment.loanNumber||loan?.loanNumber,number(payment.amount),payment.method,payment.monthCovered,payment.receivedBy,payment.notes,payment.id];});
+    downloadCsv("GYS-Payment-Records.csv",headers,rows);
+  }
+  function exportBorrowersCsv() {
+    const headers=["Borrower","Telephone","Number of Loans","Total Principal (NGN)","Total Payable (NGN)","Total Paid (NGN)","Outstanding (NGN)","Loan Statuses"];
+    const rows=getBorrowerGroups().map(group=>{const ids=new Set(group.loans.map(loan=>loan.id));const paid=payments.filter(payment=>ids.has(payment.loanId)).reduce((sum,payment)=>sum+number(payment.amount),0);return [group.name,group.phone,group.loans.length,group.loans.reduce((sum,loan)=>sum+number(loan.principal),0),group.loans.reduce((sum,loan)=>sum+number(loan.totalPayable),0),paid,group.loans.reduce((sum,loan)=>sum+outstandingFor(loan),0),[...new Set(group.loans.map(effectiveStatus))].join("; ")];});
+    downloadCsv("GYS-Borrower-Directory.csv",headers,rows);
+  }
+  function exportFinancialReports(){exportLoansCsv();window.setTimeout(exportPaymentsCsv,300);}
+  function printBorrowerStatement(key) {
+    const group=getBorrowerGroups().find(item=>item.key===key);
+    if(!group)return showToast("Borrower profile not found.","error");
+    const ids=new Set(group.loans.map(loan=>loan.id));
+    const history=payments.filter(payment=>ids.has(payment.loanId)).sort((a,b)=>String(a.date||"").localeCompare(String(b.date||"")));
+    const principal=group.loans.reduce((sum,loan)=>sum+number(loan.principal),0);
+    const paid=history.reduce((sum,payment)=>sum+number(payment.amount),0);
+    const outstanding=group.loans.reduce((sum,loan)=>sum+outstandingFor(loan),0);
+    const win=window.open("","_blank","width=900,height=900");
+    if(!win)return showToast("Allow pop-ups to print the borrower statement.","error");
+    const loanRows=group.loans.map(loan=>"<tr><td>"+esc(loan.loanNumber||"—")+"</td><td>"+esc(dateText(loan.loanDate))+"</td><td>"+esc(dateText(loan.dueDate))+"</td><td>"+esc(money(loan.principal))+"</td><td>"+esc(money(loan.totalPayable))+"</td><td>"+esc(money(paidFor(loan.id)))+"</td><td>"+esc(money(outstandingFor(loan)))+"</td><td>"+esc(effectiveStatus(loan))+"</td></tr>").join("");
+    const paymentRows=history.map(payment=>"<tr><td>"+esc(dateText(payment.date))+"</td><td>"+esc(payment.loanNumber||loans.find(loan=>loan.id===payment.loanId)?.loanNumber||"—")+"</td><td>"+esc(payment.method||"—")+"</td><td>"+esc(money(payment.amount))+"</td><td>"+esc(payment.notes||"—")+"</td></tr>").join("")||'<tr><td colspan="5">No repayments recorded.</td></tr>';
+    const html='<!doctype html><html><head><meta charset="utf-8"><title>Borrower Statement</title><style>'+
+    'body{font-family:Arial,sans-serif;color:#26332e;padding:28px;font-size:12px}main{max-width:1000px;margin:auto}.head{display:flex;justify-content:space-between;border-bottom:3px solid #205b43;padding-bottom:16px}.muted{color:#718078}.meta{text-align:right;line-height:1.7}h1{font-size:23px;margin:0 0 5px}h2{font-size:14px;margin:24px 0 10px;color:#205b43}.summary{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}.tile{background:#f2f6f2;padding:12px;border-radius:8px}.tile span{display:block;color:#718078;font-size:10px;margin-bottom:7px}.tile strong{font-size:15px}table{width:100%;border-collapse:collapse;margin-top:8px}th,td{text-align:left;padding:8px 6px;border-bottom:1px solid #e2e9e3}th{background:#edf4ee;color:#205b43;font-size:10px}.note{margin-top:28px;padding-top:14px;border-top:1px solid #e2e9e3;color:#718078;text-align:center;font-size:10px}@media print{body{padding:10px}}'+
+    '</style></head><body><main><header class="head"><div><h1>G &amp; Y Services</h1><div class="muted">BORROWER ACCOUNT STATEMENT</div></div><div class="meta"><b>Statement date:</b> '+esc(new Date().toLocaleDateString("en-NG"))+'<br><b>Borrower:</b> '+esc(group.name)+'<br><b>Telephone:</b> '+esc(group.phone||"—")+'</div></header>'+
+    '<section class="summary"><div class="tile"><span>Number of loans</span><strong>'+group.loans.length+'</strong></div><div class="tile"><span>Total principal</span><strong>'+esc(money(principal))+'</strong></div><div class="tile"><span>Total repaid</span><strong>'+esc(money(paid))+'</strong></div><div class="tile"><span>Outstanding</span><strong>'+esc(money(outstanding))+'</strong></div></section>'+
+    '<h2>Loan summary</h2><table><thead><tr><th>Loan No.</th><th>Loan date</th><th>Due date</th><th>Principal</th><th>Total payable</th><th>Paid</th><th>Balance</th><th>Status</th></tr></thead><tbody>'+loanRows+'</tbody></table>'+
+    '<h2>Repayment history</h2><table><thead><tr><th>Date</th><th>Loan No.</th><th>Method</th><th>Amount</th><th>Notes</th></tr></thead><tbody>'+paymentRows+'</tbody></table>'+
+    '<div class="note">Generated from the records maintained by G &amp; Y Services. Please contact the office if you notice any discrepancy.</div></main><script>window.onload=function(){window.print()}<\/script></body></html>';
+    win.document.write(html);win.document.close();
+  }
+
   const statuses = ["Active","Fully Paid","Overdue","Defaulted","Long Overdue"];
  
   const statusClass = status => ({
@@ -479,7 +531,7 @@
     return pageHeader(
       "Loans",
       "Manage borrower records, loan terms and balances.",
-      '<button class="btn success" id="newLoanBtn">＋ New Loan</button>'
+      '<div class="heading-actions"><button class="btn secondary" id="exportLoansBtn" type="button">↓ Export CSV</button><button class="btn success" id="newLoanBtn">＋ New Loan</button></div>'
     ) +
     `<div class="list-toolbar">
       <input id="loanSearch" class="search" type="search" placeholder="Search borrower, loan ID or phone…">
@@ -507,7 +559,7 @@
 
   function renderBorrowers() {
     const groups = getBorrowerGroups();
-    return pageHeader("Borrowers","Borrower profiles and their complete loan history.") +
+    return pageHeader("Borrowers","Borrower profiles and their complete loan history.",'<button class="btn secondary" id="exportBorrowersBtn" type="button">↓ Export CSV</button>') +
       `<div class="list-toolbar">
         <input id="borrowerSearch" class="search" type="search" placeholder="Search borrower name or phone…">
         <span class="muted">${groups.length} borrowers</span>
@@ -568,9 +620,10 @@
             <div class="form-section"><h4>Loan history</h4><div class="profile-list">${loanRows}</div></div>
             <div class="form-section"><h4>Repayment history</h4><div class="profile-list">${paymentRows}</div></div>
           </div>
-          <div class="modal-foot"><button class="btn primary" type="button" data-close-modal>Close profile</button></div>
+          <div class="modal-foot"><button class="btn secondary" type="button" id="printBorrowerStatement">Print statement</button><button class="btn primary" type="button" data-close-modal>Close profile</button></div>
         </section>
       </div>`;
+    $("printBorrowerStatement").addEventListener("click",()=>printBorrowerStatement(key));
     bindModalClose();
   }
 
@@ -603,7 +656,7 @@
     return pageHeader(
       "Payments",
       "Record and review repayments.",
-      '<button class="btn success" id="newPaymentBtn">＋ Record Payment</button>'
+      '<div class="heading-actions"><button class="btn secondary" id="exportPaymentsBtn" type="button">↓ Export CSV</button><button class="btn success" id="newPaymentBtn">＋ Record Payment</button></div>'
     ) +
     `<div class="payment-grid">
       ${payments.length ? payments.map(paymentCard).join("") :
@@ -779,7 +832,7 @@
       const principalPaid = Math.min(number(loan.principal), payments.filter(payment=>payment.loanId===loan.id).reduce((s,p)=>s+number(p.amount),0));
       return sum+principalPaid;
     },0));
-    return pageHeader("Reports & Analytics","Understand lending, repayments and your loan portfolio.") +
+    return pageHeader("Reports & Analytics","Understand lending, repayments and your loan portfolio.",'<button class="btn secondary" id="exportReportsBtn" type="button">↓ Export records</button>') +
       `<div class="stats-grid">
         ${stat("Loans issued",loans.length)}
         ${stat("Principal disbursed",money(principal),true)}
@@ -846,6 +899,11 @@
       : renderAbout();
  
     $("mainContent").innerHTML = content;
+
+    $("exportLoansBtn")?.addEventListener("click",exportLoansCsv);
+    $("exportPaymentsBtn")?.addEventListener("click",exportPaymentsCsv);
+    $("exportBorrowersBtn")?.addEventListener("click",exportBorrowersCsv);
+    $("exportReportsBtn")?.addEventListener("click",exportFinancialReports);
  
     if (currentPage==="dashboard") {
       $("dashboardNewLoanBtn").addEventListener("click",()=>openLoanModal());
