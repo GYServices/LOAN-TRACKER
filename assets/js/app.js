@@ -680,10 +680,10 @@
         <div class="about-logo">G&amp;Y</div>
         <h3>G &amp; Y Services</h3>
         <h2>G &amp; Y Services Loan Tracker</h2>
-        <p>A loan administration tool for managing borrower details, calculating repayments, recording collections and monitoring outstanding balances.</p>
-        <p><strong>Version:</strong> 1.0.0</p>
+        <p>A loan administration tool for managing loans</p>
+        <p><strong>Version:</strong> 2.0.0</p>
          <p><strong>Built by:</strong> Agah David</p>
-        <p><strong>Privacy:</strong> This application is protected by Firebase Authentication. Your records are stored in your Firebase project and separated by account.</p>
+        <p><strong>Privacy:</strong> This application is highly protected.</p>
         <p><strong>Support:</strong> Contact your G &amp; Y Services system administrator for assistance.</p>
       </section>`;
   }
