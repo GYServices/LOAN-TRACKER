@@ -661,3 +661,25 @@
 .profile-loan-row strong,.profile-payment-row strong{font-size:13px;color:var(--navy)}
 .profile-payment-row span{font-size:12px;color:var(--muted)}
 @media(max-width:760px){.borrower-grid{grid-template-columns:1fr}.borrower-summary-grid,.borrower-profile-stats{gap:6px}.borrower-summary-grid>div,.borrower-profile-stats>div{padding:9px 7px}.borrower-card-foot{align-items:flex-start;flex-direction:column}.borrower-card-foot button{width:100%}}
+
+
+/* Monthly analytics charts */
+.analytics-panel{overflow:hidden}
+.analytics-heading{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap}
+.analytics-heading h3{margin-bottom:5px}
+.analytics-heading p{margin:0;font-size:12px}
+.chart-legend{display:flex;gap:14px;flex-wrap:wrap;color:var(--muted);font-size:11px}
+.chart-legend span{display:flex;align-items:center;gap:6px}
+.legend-dot{width:9px;height:9px;border-radius:3px;display:inline-block}
+.legend-dot.lent,.month-bar.lent{background:#b7a16a}
+.legend-dot.collected,.month-bar.collected{background:#267451}
+.monthly-chart{height:190px;display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:12px;align-items:end;padding:20px 8px 8px;border-bottom:1px solid var(--line)}
+.month-column{height:100%;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;gap:9px;color:var(--muted);font-size:11px}
+.month-bars{height:100%;width:100%;display:flex;justify-content:center;align-items:flex-end;gap:5px}
+.month-bar{width:min(24px,35%);min-height:3px;border-radius:5px 5px 2px 2px;transition:height .2s ease}
+.monthly-breakdown{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:14px}
+.monthly-row{background:#f6f8f6;border-radius:9px;padding:10px;display:grid;gap:5px;font-size:11px;color:var(--muted)}
+.monthly-row strong{color:var(--navy);font-size:12px}
+.analytics-average{display:flex;justify-content:space-between;align-items:center;gap:12px;border-top:1px solid var(--line);margin-top:14px;padding-top:14px;font-size:12px;color:var(--muted)}
+.analytics-average strong{font-size:16px;color:#205b43}
+@media(max-width:600px){.monthly-breakdown{grid-template-columns:repeat(2,minmax(0,1fr))}.monthly-chart{gap:5px;padding-left:0;padding-right:0}.month-bar{width:35%}.analytics-average{align-items:flex-start;flex-direction:column}}
