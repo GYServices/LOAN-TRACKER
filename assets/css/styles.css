@@ -615,3 +615,15 @@
 .calculator-footer { margin-top:16px; letter-spacing:0; font-weight:600; }
 .calc-backspace { border:0; background:transparent; color:#d8eadc; font-size:11px; font-weight:700; padding:5px 0; }
 @media(max-width:480px) { .standard-calculator-panel { padding:15px; } .standard-calculator { padding:16px; } .calc-key { min-height:58px; border-radius:14px; } .calculator-display { min-height:100px; } }
+
+
+/* Remove the duplicate top branding strip; retain the account controls. */
+.topbar .top-brand { display: none !important; }
+.topbar {
+  min-height: 48px;
+  padding-top: 8px;
+  padding-bottom: 8px;
+}
+@media (max-width: 760px) {
+  .topbar { min-height: 44px; }
+}
