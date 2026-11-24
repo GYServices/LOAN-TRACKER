@@ -491,6 +491,89 @@
     </div>`;
   }
  
+
+  // Borrower profiles are derived from existing loan/payment documents.
+  // Phone numbers are used as the grouping key; records without a phone stay separate.
+  function getBorrowerGroups() {
+    const groups = new Map();
+    loans.forEach(loan => {
+      const digits = String(loan.phone || "").replace(/\\D/g, "");
+      const key = digits ? "phone:" + digits : "loan:" + loan.id;
+      if (!groups.has(key)) groups.set(key, {key, name:loan.fullName || "Unnamed borrower", phone:loan.phone || "", loans:[]});
+      groups.get(key).loans.push(loan);
+    });
+    return [...groups.values()].sort((a,b)=>a.name.localeCompare(b.name));
+  }
+
+  function renderBorrowers() {
+    const groups = getBorrowerGroups();
+    return pageHeader("Borrowers","Borrower profiles and their complete loan history.") +
+      `<div class="list-toolbar">
+        <input id="borrowerSearch" class="search" type="search" placeholder="Search borrower name or phone…">
+        <span class="muted">${groups.length} borrowers</span>
+      </div>
+      <div id="borrowerList" class="borrower-grid">
+        ${groups.length ? groups.map(group => {
+          const ids = new Set(group.loans.map(loan=>loan.id));
+          const paid = payments.filter(payment=>ids.has(payment.loanId)).reduce((sum,payment)=>sum+number(payment.amount),0);
+          const outstanding = group.loans.reduce((sum,loan)=>sum+outstandingFor(loan),0);
+          const statusesForGroup = [...new Set(group.loans.map(effectiveStatus))];
+          return `<article class="borrower-card">
+            <div class="borrower-card-head">
+              <div class="borrower-avatar">${esc((group.name.trim()[0] || "B").toUpperCase())}</div>
+              <div class="borrower-card-identity"><h3>${esc(group.name)}</h3><p>${esc(group.phone || "No phone number recorded")}</p></div>
+            </div>
+            <div class="borrower-summary-grid">
+              <div><span>Loans</span><strong>${group.loans.length}</strong></div>
+              <div><span>Total paid</span><strong>${money(paid)}</strong></div>
+              <div><span>Outstanding</span><strong>${money(outstanding)}</strong></div>
+            </div>
+            <div class="borrower-card-foot">
+              <span class="muted">${statusesForGroup.map(esc).join(" · ")}</span>
+              <button class="btn secondary small" type="button" data-view-borrower="${esc(group.key)}">View profile</button>
+            </div>
+          </article>`;
+        }).join("") : '<div class="empty"><strong>No borrower records yet</strong>Borrowers will appear here when you add loans.</div>'}
+      </div>`;
+  }
+
+  function openBorrowerProfile(key) {
+    const group = getBorrowerGroups().find(item=>item.key===key);
+    if (!group) return showToast("Borrower profile not found.","error");
+    const ids = new Set(group.loans.map(loan=>loan.id));
+    const history = payments.filter(payment=>ids.has(payment.loanId))
+      .sort((a,b)=>String(b.date||"").localeCompare(String(a.date||"")));
+    const paid = history.reduce((sum,payment)=>sum+number(payment.amount),0);
+    const outstanding = group.loans.reduce((sum,loan)=>sum+outstandingFor(loan),0);
+    const loanRows = group.loans.map(loan=>`
+      <div class="profile-loan-row">
+        <div><strong>Loan #${esc(loan.loanNumber || "—")}</strong><span>${esc(effectiveStatus(loan))} · Due ${dateText(loan.dueDate)}</span></div>
+        <div><strong>${money(loan.totalPayable)}</strong><span>Outstanding: ${money(outstandingFor(loan))}</span></div>
+      </div>`).join("");
+    const paymentRows = history.map(payment=>`
+      <div class="profile-payment-row">
+        <span>${dateText(payment.date)} · Loan #${esc(payment.loanNumber || "—")}</span>
+        <strong>${money(payment.amount)}</strong>
+      </div>`).join("") || '<p class="muted">No repayments have been recorded for this borrower.</p>';
+    $("modalRoot").innerHTML = `
+      <div class="modal-backdrop" id="modalBackdrop">
+        <section class="modal borrower-profile-modal" role="dialog" aria-modal="true">
+          <div class="modal-head"><div><h3>${esc(group.name)}</h3><p class="muted">${esc(group.phone || "No phone number recorded")}</p></div><button class="close" type="button" data-close-modal>×</button></div>
+          <div class="modal-body">
+            <div class="borrower-profile-stats">
+              <div><span>Loans</span><strong>${group.loans.length}</strong></div>
+              <div><span>Total repaid</span><strong>${money(paid)}</strong></div>
+              <div><span>Outstanding</span><strong>${money(outstanding)}</strong></div>
+            </div>
+            <div class="form-section"><h4>Loan history</h4><div class="profile-list">${loanRows}</div></div>
+            <div class="form-section"><h4>Repayment history</h4><div class="profile-list">${paymentRows}</div></div>
+          </div>
+          <div class="modal-foot"><button class="btn primary" type="button" data-close-modal>Close profile</button></div>
+        </section>
+      </div>`;
+    bindModalClose();
+  }
+
   function paymentCard(payment) {
     const loan = loans.find(l=>l.id===payment.loanId);
  
@@ -718,6 +801,7 @@
  
     const content = currentPage==="dashboard" ? renderDashboard()
       : currentPage==="loans" ? renderLoans()
+      : currentPage==="borrowers" ? renderBorrowers()
       : currentPage==="payments" ? renderPayments()
       : currentPage==="calculator" ? renderCalculator()
       : currentPage==="reports" ? renderReports()
@@ -756,6 +840,34 @@
       bindPaymentActions();
     }
 
+    if (currentPage==="borrowers") {
+      $("borrowerSearch").addEventListener("input",event=>{
+        const term=event.target.value.toLowerCase();
+        const matches=getBorrowerGroups().filter(group=>
+          [group.name,group.phone].some(value=>String(value||"").toLowerCase().includes(term))
+        );
+        const list=$("borrowerList");
+        if (!matches.length) {
+          list.innerHTML='<div class="empty"><strong>No matching borrowers</strong>Try another search.</div>';
+          return;
+        }
+        list.innerHTML=matches.map(group=>{
+          const ids=new Set(group.loans.map(loan=>loan.id));
+          const paid=payments.filter(payment=>ids.has(payment.loanId)).reduce((sum,payment)=>sum+number(payment.amount),0);
+          const outstanding=group.loans.reduce((sum,loan)=>sum+outstandingFor(loan),0);
+          const statusesForGroup=[...new Set(group.loans.map(effectiveStatus))];
+          return `<article class="borrower-card">
+            <div class="borrower-card-head"><div class="borrower-avatar">${esc((group.name.trim()[0]||"B").toUpperCase())}</div>
+            <div class="borrower-card-identity"><h3>${esc(group.name)}</h3><p>${esc(group.phone||"No phone number recorded")}</p></div></div>
+            <div class="borrower-summary-grid"><div><span>Loans</span><strong>${group.loans.length}</strong></div><div><span>Total paid</span><strong>${money(paid)}</strong></div><div><span>Outstanding</span><strong>${money(outstanding)}</strong></div></div>
+            <div class="borrower-card-foot"><span class="muted">${statusesForGroup.map(esc).join(" · ")}</span><button class="btn secondary small" type="button" data-view-borrower="${esc(group.key)}">View profile</button></div>
+          </article>`;
+        }).join("");
+        bindBorrowerActions();
+      });
+      bindBorrowerActions();
+    }
+
     if (currentPage==="calculator") bindStandardCalculator();
   }
  
@@ -775,6 +887,12 @@
     });
   }
  
+  function bindBorrowerActions() {
+    document.querySelectorAll("[data-view-borrower]").forEach(button=>{
+      button.addEventListener("click",()=>openBorrowerProfile(button.dataset.viewBorrower));
+    });
+  }
+
   function bindPaymentActions() {
     document.querySelectorAll("[data-delete-payment]").forEach(button=>{
       button.addEventListener("click",()=>deletePayment(button.dataset.deletePayment));
