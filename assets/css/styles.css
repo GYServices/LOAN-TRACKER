@@ -617,13 +617,6 @@
 @media(max-width:480px) { .standard-calculator-panel { padding:15px; } .standard-calculator { padding:16px; } .calc-key { min-height:58px; border-radius:14px; } .calculator-display { min-height:100px; } }
 
 
-/* Remove the duplicate top branding strip; retain the account controls. */
-.topbar .top-brand { display: none !important; }
-.topbar {
-  min-height: 48px;
-  padding-top: 8px;
-  padding-bottom: 8px;
-}
-@media (max-width: 760px) {
-  .topbar { min-height: 44px; }
-}
+/* Hide the unwanted oversized title inside the sidebar.
+   Keep the topbar brand visible. */
+.bottom-nav::before { display: none; }
