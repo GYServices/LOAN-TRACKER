@@ -32,7 +32,7 @@
 
   function csvCell(value) {
     let text=String(value??"");
-    if(/^[=+@\- \t\r]/.test(text)) text="'"+text;
+    if(/^[=+@\-\t\r]/.test(text)) text="'"+text;
     return '"'+text.replace(/"/g,'""')+'"';
   }
   function downloadCsv(filename,headers,rows) {
@@ -40,7 +40,7 @@
     const blob=new Blob([csv],{type:"text/csv;charset=utf-8;"});
     const url=URL.createObjectURL(blob),link=document.createElement("a");
     link.href=url;link.download=filename;link.style.display="none";
-    document.body.appendChild(link);link.click();link.remove();URL.revokeObjectURL(url);
+    document.body.appendChild(link);link.click();link.remove();window.setTimeout(()=>URL.revokeObjectURL(url),1000);
     showToast(filename+" exported successfully.");
   }
   function exportLoansCsv() {
@@ -58,7 +58,7 @@
     const rows=getBorrowerGroups().map(group=>{const ids=new Set(group.loans.map(loan=>loan.id));const paid=payments.filter(payment=>ids.has(payment.loanId)).reduce((sum,payment)=>sum+number(payment.amount),0);return [group.name,group.phone,group.loans.length,group.loans.reduce((sum,loan)=>sum+number(loan.principal),0),group.loans.reduce((sum,loan)=>sum+number(loan.totalPayable),0),paid,group.loans.reduce((sum,loan)=>sum+outstandingFor(loan),0),[...new Set(group.loans.map(effectiveStatus))].join("; ")];});
     downloadCsv("GYS-Borrower-Directory.csv",headers,rows);
   }
-  function exportFinancialReports(){exportLoansCsv();window.setTimeout(exportPaymentsCsv,300);}
+  function exportFinancialReports(){exportLoansCsv();}
   function printBorrowerStatement(key) {
     const group=getBorrowerGroups().find(item=>item.key===key);
     if(!group)return showToast("Borrower profile not found.","error");
@@ -832,7 +832,7 @@
       const principalPaid = Math.min(number(loan.principal), payments.filter(payment=>payment.loanId===loan.id).reduce((s,p)=>s+number(p.amount),0));
       return sum+principalPaid;
     },0));
-    return pageHeader("Reports & Analytics","Understand lending, repayments and your loan portfolio.",'<button class="btn secondary" id="exportReportsBtn" type="button">↓ Export records</button>') +
+    return pageHeader("Reports & Analytics","Understand lending, repayments and your loan portfolio.",'<button class="btn secondary" id="exportReportsBtn" type="button">↓ Export loan data</button>') +
       `<div class="stats-grid">
         ${stat("Loans issued",loans.length)}
         ${stat("Principal disbursed",money(principal),true)}
