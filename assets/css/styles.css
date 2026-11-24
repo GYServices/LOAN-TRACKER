@@ -620,3 +620,20 @@
 /* Hide the unwanted oversized title inside the sidebar.
    Keep the topbar brand visible. */
 .bottom-nav::before { display: none; }
+
+
+/* Repayment alerts and receipt actions */
+.alerts-grid { margin-top: 18px; }
+.alert-count {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-width: 24px; height: 24px; margin-left: 6px; padding: 0 7px;
+  border-radius: 999px; background: #e8f4e9; color: #1b5a40;
+  font-size: 12px; font-weight: 800; vertical-align: middle;
+}
+.alerts-grid .break-row { gap: 14px; align-items: flex-start; }
+.alerts-grid .break-row strong { white-space: nowrap; }
+.alerts-grid .muted { color: #738078; font-size: 13px; }
+@media(max-width:760px) {
+  .alerts-grid { grid-template-columns: 1fr; }
+  .alerts-grid .break-row { flex-wrap: wrap; }
+}
