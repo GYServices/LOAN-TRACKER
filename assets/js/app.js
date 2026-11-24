@@ -504,21 +504,145 @@
   }
  
   function renderCalculator() {
-    return pageHeader("Loan Calculator","Estimate a repayment before creating a loan.") +
-      `<section class="panel calculator-panel">
-        <div class="form-grid">
-          <div class="field"><label for="calcPrincipal">Principal amount (₦)</label><input id="calcPrincipal" type="number" min="0" step="0.01" value="100000"></div>
-          <div class="field"><label for="calcRate">Interest rate (%)</label><input id="calcRate" type="number" min="0" step="0.01" value="20"></div>
-          <div class="field"><label for="calcDuration">Duration (months)</label><input id="calcDuration" type="number" min="1" step="1" value="5"></div>
-          <div class="field"><label for="calcMethod">Calculation method</label><input id="calcMethod" value="Flat interest" disabled></div>
+    return pageHeader("Calculator","A simple calculator for everyday arithmetic.") +
+      `<section class="panel standard-calculator-panel">
+        <div class="standard-calculator" role="group" aria-label="Calculator">
+          <div class="calculator-topline"><span>G&amp;Y CALCULATOR</span><span id="calcStatus">Ready</span></div>
+          <div class="calculator-display" aria-live="polite" aria-atomic="true">
+            <div id="calcExpression" class="calculator-expression">&nbsp;</div>
+            <output id="calcDisplay" class="calculator-screen" aria-label="Display">0</output>
+          </div>
+          <div class="calculator-keys">
+            <button type="button" class="calc-key calc-function" data-calc="clear">AC</button>
+            <button type="button" class="calc-key calc-function" data-calc="sign">±</button>
+            <button type="button" class="calc-key calc-function" data-calc="percent">%</button>
+            <button type="button" class="calc-key calc-operator" data-calc="operator" data-value="÷">÷</button>
+            <button type="button" class="calc-key" data-calc="digit" data-value="7">7</button>
+            <button type="button" class="calc-key" data-calc="digit" data-value="8">8</button>
+            <button type="button" class="calc-key" data-calc="digit" data-value="9">9</button>
+            <button type="button" class="calc-key calc-operator" data-calc="operator" data-value="×">×</button>
+            <button type="button" class="calc-key" data-calc="digit" data-value="4">4</button>
+            <button type="button" class="calc-key" data-calc="digit" data-value="5">5</button>
+            <button type="button" class="calc-key" data-calc="digit" data-value="6">6</button>
+            <button type="button" class="calc-key calc-operator" data-calc="operator" data-value="−">−</button>
+            <button type="button" class="calc-key" data-calc="digit" data-value="1">1</button>
+            <button type="button" class="calc-key" data-calc="digit" data-value="2">2</button>
+            <button type="button" class="calc-key" data-calc="digit" data-value="3">3</button>
+            <button type="button" class="calc-key calc-operator" data-calc="operator" data-value="+">+</button>
+            <button type="button" class="calc-key calc-zero" data-calc="digit" data-value="0">0</button>
+            <button type="button" class="calc-key" data-calc="decimal">.</button>
+            <button type="button" class="calc-key calc-equals" data-calc="equals">=</button>
+          </div>
+          <div class="calculator-footer"><span>Keyboard supported</span><button type="button" class="calc-backspace" data-calc="backspace">⌫ Delete</button></div>
         </div>
-        <div class="calculator-results" aria-live="polite">
-          <div class="preview-item"><span>Total interest</span><strong id="calcInterest">₦0.00</strong></div>
-          <div class="preview-item"><span>Total repayment</span><strong id="calcPayable">₦0.00</strong></div>
-          <div class="preview-item"><span>Monthly instalment</span><strong id="calcMonthly">₦0.00</strong></div>
-        </div>
-        <p class="muted calculator-note">Estimate only. This uses the same flat-interest calculation as the loan entry form and does not save anything to your records.</p>
       </section>`;
+  }
+
+  function bindStandardCalculator() {
+    const display = $("calcDisplay");
+    const expression = $("calcExpression");
+    const status = $("calcStatus");
+    if (!display) return;
+
+    let current = "0";
+    let stored = null;
+    let pending = null;
+    let replaceNext = false;
+    let lastOperator = null;
+    let lastOperand = null;
+
+    const format = value => {
+      if (!Number.isFinite(value)) return "Error";
+      const rounded = Number.parseFloat(value.toPrecision(12));
+      return rounded.toLocaleString("en-NG", {maximumFractionDigits:10});
+    };
+    const numeric = () => Number(current.replace(/,/g,""));
+    const show = () => {
+      display.textContent = format(numeric());
+      expression.textContent = pending && stored !== null ? `${format(stored)} ${pending}` : "\u00a0";
+      status.textContent = pending ? "Operation pending" : "Ready";
+    };
+    const calculate = (a, op, b) => {
+      if (op === "+") return a + b;
+      if (op === "−") return a - b;
+      if (op === "×") return a * b;
+      if (op === "÷") return b === 0 ? NaN : a / b;
+      return b;
+    };
+    const clear = () => {
+      current = "0"; stored = null; pending = null; replaceNext = false;
+      lastOperator = null; lastOperand = null; show();
+    };
+    const inputDigit = digit => {
+      if (current === "Error" || replaceNext) { current = digit; replaceNext = false; }
+      else if (current.replace(/,/g,"").replace("-","").length < 14) current = current === "0" ? digit : current + digit;
+      show();
+    };
+    const chooseOperator = op => {
+      const value = numeric();
+      if (!Number.isFinite(value)) { clear(); return; }
+      if (pending && !replaceNext) {
+        const result = calculate(stored, pending, value);
+        if (!Number.isFinite(result)) { current = "Error"; stored = null; pending = null; show(); return; }
+        current = String(Number.parseFloat(result.toPrecision(12)));
+        stored = Number(current);
+      } else stored = value;
+      pending = op; replaceNext = true; lastOperator = null; lastOperand = null; show();
+    };
+    const equals = () => {
+      if (pending) {
+        const operand = replaceNext ? stored : numeric();
+        const result = calculate(stored, pending, operand);
+        expression.textContent = `${format(stored)} ${pending} ${format(operand)} =`;
+        current = Number.isFinite(result) ? String(Number.parseFloat(result.toPrecision(12))) : "Error";
+        lastOperator = pending; lastOperand = operand; stored = null; pending = null; replaceNext = true;
+      } else if (lastOperator && lastOperand !== null) {
+        const result = calculate(numeric(), lastOperator, lastOperand);
+        expression.textContent = `${format(numeric())} ${lastOperator} ${format(lastOperand)} =`;
+        current = Number.isFinite(result) ? String(Number.parseFloat(result.toPrecision(12))) : "Error";
+        replaceNext = true;
+      }
+      show();
+    };
+    const act = (action, value) => {
+      if (action === "digit") inputDigit(value);
+      else if (action === "decimal") {
+        if (current === "Error" || replaceNext) { current = "0."; replaceNext = false; }
+        else if (!current.includes(".")) current += ".";
+        show();
+      } else if (action === "clear") clear();
+      else if (action === "backspace") {
+        if (replaceNext || current === "Error") current = "0";
+        else current = current.length > 1 ? current.slice(0,-1) : "0";
+        show();
+      } else if (action === "sign") {
+        if (current !== "0" && current !== "Error") current = current.startsWith("-") ? current.slice(1) : "-" + current;
+        show();
+      } else if (action === "percent") {
+        if (current !== "Error") current = String(numeric()/100);
+        show();
+      } else if (action === "operator") chooseOperator(value);
+      else if (action === "equals") equals();
+    };
+
+    document.querySelectorAll("[data-calc]").forEach(button => {
+      button.addEventListener("click", () => act(button.dataset.calc, button.dataset.value));
+    });
+    const onKey = event => {
+      if (currentPage !== "calculator") { document.removeEventListener("keydown", onKey); return; }
+      if (/^[0-9]$/.test(event.key)) { event.preventDefault(); act("digit",event.key); }
+      else if (event.key === ".") { event.preventDefault(); act("decimal"); }
+      else if (event.key === "Enter" || event.key === "=") { event.preventDefault(); act("equals"); }
+      else if (event.key === "Backspace") { event.preventDefault(); act("backspace"); }
+      else if (event.key === "Escape") { event.preventDefault(); act("clear"); }
+      else if (event.key === "+") { event.preventDefault(); act("operator","+"); }
+      else if (event.key === "-") { event.preventDefault(); act("operator","−"); }
+      else if (event.key === "*") { event.preventDefault(); act("operator","×"); }
+      else if (event.key === "/") { event.preventDefault(); act("operator","÷"); }
+      else if (event.key === "%") { event.preventDefault(); act("percent"); }
+    };
+    document.addEventListener("keydown",onKey);
+    show();
   }
 
   function renderReports() {
@@ -607,20 +731,7 @@
       bindPaymentActions();
     }
 
-    if (currentPage==="calculator") {
-      const updateCalculator = () => {
-        const principal = number($("calcPrincipal").value);
-        const rate = number($("calcRate").value);
-        const duration = number($("calcDuration").value);
-        const valid = principal >= 0 && rate >= 0 && duration >= 1 && Number.isInteger(duration);
-        const result = valid ? calcLoan(principal, rate, duration) : {interest:0,payable:0,monthly:0};
-        $("calcInterest").textContent = money(result.interest);
-        $("calcPayable").textContent = money(result.payable);
-        $("calcMonthly").textContent = money(result.monthly);
-      };
-      ["calcPrincipal","calcRate","calcDuration"].forEach(id => $(id).addEventListener("input",updateCalculator));
-      updateCalculator();
-    }
+    if (currentPage==="calculator") bindStandardCalculator();
   }
  
   function bindLoanActions() {
