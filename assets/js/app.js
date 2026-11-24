@@ -503,6 +503,53 @@
     </div>`;
   }
  
+  function renderCalculator() {
+    return pageHeader("Loan Calculator","Estimate a repayment before creating a loan.") +
+      `<section class="panel calculator-panel">
+        <div class="form-grid">
+          <div class="field"><label for="calcPrincipal">Principal amount (₦)</label><input id="calcPrincipal" type="number" min="0" step="0.01" value="100000"></div>
+          <div class="field"><label for="calcRate">Interest rate (%)</label><input id="calcRate" type="number" min="0" step="0.01" value="20"></div>
+          <div class="field"><label for="calcDuration">Duration (months)</label><input id="calcDuration" type="number" min="1" step="1" value="5"></div>
+          <div class="field"><label for="calcMethod">Calculation method</label><input id="calcMethod" value="Flat interest" disabled></div>
+        </div>
+        <div class="calculator-results" aria-live="polite">
+          <div class="preview-item"><span>Total interest</span><strong id="calcInterest">₦0.00</strong></div>
+          <div class="preview-item"><span>Total repayment</span><strong id="calcPayable">₦0.00</strong></div>
+          <div class="preview-item"><span>Monthly instalment</span><strong id="calcMonthly">₦0.00</strong></div>
+        </div>
+        <p class="muted calculator-note">Estimate only. This uses the same flat-interest calculation as the loan entry form and does not save anything to your records.</p>
+      </section>`;
+  }
+
+  function renderReports() {
+    const principal = loans.reduce((sum, loan) => sum + number(loan.principal), 0);
+    const payable = loans.reduce((sum, loan) => sum + number(loan.totalPayable), 0);
+    const collected = payments.reduce((sum, payment) => sum + number(payment.amount), 0);
+    const outstanding = loans.reduce((sum, loan) => sum + outstandingFor(loan), 0);
+    const statusesCount = status => loans.filter(loan => effectiveStatus(loan) === status).length;
+    return pageHeader("Reports & Analytics","A quick portfolio summary based on your existing records.") +
+      `<div class="stats-grid">
+        ${stat("Loans issued",loans.length)}
+        ${stat("Principal disbursed",money(principal),true)}
+        ${stat("Total expected",money(payable),true)}
+        ${stat("Total collected",money(collected),true)}
+        ${stat("Outstanding",money(outstanding),true)}
+        ${stat("Collection rate",payable?(collected/payable*100).toFixed(1)+"%":"0.0%")}
+      </div>
+      <section class="panel report-panel">
+        <h3>Loan status summary</h3>
+        <div class="breakdown">
+          ${statuses.map(status => `<div class="break-row"><span>${esc(status)}</span><strong>${statusesCount(status)}</strong></div>`).join("")}
+        </div>
+      </section>
+      <section class="panel report-panel">
+        <h3>Recent repayments</h3>
+        <div class="breakdown">
+          ${payments.slice(0,8).map(payment => `<div class="break-row"><span>${esc(payment.borrowerName || "Borrower")} · ${dateText(payment.date)}</span><strong>${money(payment.amount)}</strong></div>`).join("") || '<p class="muted">No payments recorded yet.</p>'}
+        </div>
+      </section>`;
+  }
+
   function renderAbout() {
     return pageHeader("About","Application information.") +
       `<section class="panel about-card">
@@ -523,6 +570,8 @@
     const content = currentPage==="dashboard" ? renderDashboard()
       : currentPage==="loans" ? renderLoans()
       : currentPage==="payments" ? renderPayments()
+      : currentPage==="calculator" ? renderCalculator()
+      : currentPage==="reports" ? renderReports()
       : renderAbout();
  
     $("mainContent").innerHTML = content;
@@ -556,6 +605,21 @@
     if (currentPage==="payments") {
       $("newPaymentBtn").addEventListener("click",openPaymentModal);
       bindPaymentActions();
+    }
+
+    if (currentPage==="calculator") {
+      const updateCalculator = () => {
+        const principal = number($("calcPrincipal").value);
+        const rate = number($("calcRate").value);
+        const duration = number($("calcDuration").value);
+        const valid = principal >= 0 && rate >= 0 && duration >= 1 && Number.isInteger(duration);
+        const result = valid ? calcLoan(principal, rate, duration) : {interest:0,payable:0,monthly:0};
+        $("calcInterest").textContent = money(result.interest);
+        $("calcPayable").textContent = money(result.payable);
+        $("calcMonthly").textContent = money(result.monthly);
+      };
+      ["calcPrincipal","calcRate","calcDuration"].forEach(id => $(id).addEventListener("input",updateCalculator));
+      updateCalculator();
     }
   }
  
